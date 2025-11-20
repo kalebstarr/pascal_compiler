@@ -1,9 +1,11 @@
 use lalrpop_util::lalrpop_mod;
 
+lalrpop_mod!(
+    #[allow(clippy::ptr_arg)]
+    #[rustfmt::skip]
+    grammar
+);
+
 fn main() {
-    lalrpop_mod!(
-        #[allow(clippy::ptr_arg)]
-        #[rustfmt::skip]
-        grammar
-    );
+    println!("{}", grammar::TermParser::new().parse("22").unwrap());
 }
