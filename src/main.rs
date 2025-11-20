@@ -1,3 +1,9 @@
+use lalrpop_util::lalrpop_mod;
+
 fn main() {
-    println!("Hello, world!");
+    lalrpop_mod!(
+        #[allow(clippy::ptr_arg)]
+        #[rustfmt::skip]
+        grammar
+    );
 }
