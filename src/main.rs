@@ -6,6 +6,10 @@ lalrpop_mod!(
     grammar
 );
 
+pub mod ast;
+
 fn main() {
-    println!("{}", grammar::TermParser::new().parse("22").unwrap());
+    // println!("{}", grammar::TermParser::new().parse("22").unwrap());
+    let out = format!("{:?}", grammar::ExprParser::new().parse("(10 + 22) * (12 / 70)").unwrap());
+    println!("{out}");
 }
