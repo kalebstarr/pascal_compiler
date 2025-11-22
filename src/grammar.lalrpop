@@ -36,3 +36,18 @@ Num: i32 = {
             error: "number is too big"
         }),
 };
+
+match {
+    // String match
+    // TODO: Determine if the should be included here or if they should be included using '_' in low prio
+    "+", "-", "*", "/", "(", ")",
+
+    // Skip
+    r"\s*" => { }, // Whitespace
+    r"//[^\n\r]*[\n\r]*" => { }, // Comments
+} else {
+    // Low prio
+    // TODO: Determine if numbers belong here
+    r"[0-9]+",
+    r"[a-zA-Z_][a-zA-Z0-9_]*" => Id,
+}
