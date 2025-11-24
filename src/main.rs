@@ -1,4 +1,4 @@
-use std::{env, error::Error, fmt::Display, process};
+use std::{env, error::Error, fmt::Display, fs, process};
 
 use lalrpop_util::lalrpop_mod;
 
@@ -17,20 +17,33 @@ fn main() {
         process::exit(1);
     });
 
-    println!("{file_path}");
+    let file_content = read_file(file_path).unwrap_or_else(|err| {
+        println!("Problem reading file: {err}");
+        usage_tip();
+        process::exit(1);
+    });
+
+    println!("{file_content}");
 }
 
-#[derive(Debug)]
-struct ArgsError {
-    msg: String,
+macro_rules! def_error {
+    ($name:ident, $msg:expr) => {
+        #[derive(Debug)]
+        struct $name {
+            msg: String,
+        }
+
+        impl Error for $name {}
+        impl Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}: {}", $msg, self.msg)
+            }
+        }
+    };
 }
 
-impl Error for ArgsError {}
-impl Display for ArgsError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.msg)
-    }
-}
+def_error!(ArgsError, "Argument Error");
+def_error!(FileError, "File Error");
 
 fn read_args() -> Result<String, ArgsError> {
     let args: Vec<String> = env::args().collect();
@@ -40,6 +53,15 @@ fn read_args() -> Result<String, ArgsError> {
     }
 
     Ok(args[1].clone())
+}
+
+fn read_file(file_path: String) -> Result<String, FileError> {
+    let file_content = fs::read_to_string(file_path);
+
+    match file_content {
+        Ok(content) => Ok(content.clone()),
+        Err(_) => Err(FileError{ msg: "Could not read file".to_string() }),
+    }
 }
 
 fn usage_tip() {
