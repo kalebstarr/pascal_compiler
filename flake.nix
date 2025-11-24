@@ -24,6 +24,8 @@
             cargo
             rustc
             clippy
+
+            fpc
           ];
         };
       }
