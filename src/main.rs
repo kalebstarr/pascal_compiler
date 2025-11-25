@@ -17,7 +17,7 @@ fn main() {
         process::exit(1);
     });
 
-    let file_content = read_file(file_path).unwrap_or_else(|err| {
+    let file_content = fs::read_to_string(file_path).unwrap_or_else(|err| {
         println!("Problem reading file: {err}");
         usage_tip();
         process::exit(1);
@@ -43,27 +43,21 @@ macro_rules! def_error {
 }
 
 def_error!(ArgsError, "Argument Error");
-def_error!(FileError, "File Error");
 
 fn read_args() -> Result<String, ArgsError> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 3 {
-        return Err(ArgsError { msg: "Too few arguments".to_string() })
+        return Err(ArgsError {
+            msg: "Too few arguments".to_string(),
+        });
     }
 
     match args[1].as_str() {
         "-compile" => Ok(args[2].clone()),
-        _ => Err(ArgsError { msg: "Invalid argument".to_string() }),
-    }
-}
-
-fn read_file(file_path: String) -> Result<String, FileError> {
-    let file_content = fs::read_to_string(file_path);
-
-    match file_content {
-        Ok(content) => Ok(content.clone()),
-        Err(_) => Err(FileError{ msg: "Could not read file".to_string() }),
+        _ => Err(ArgsError {
+            msg: "Invalid argument".to_string(),
+        }),
     }
 }
 
