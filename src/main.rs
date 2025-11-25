@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::{env, error::Error, fmt::Display, fs, process};
 
 use lalrpop_util::lalrpop_mod;
@@ -17,13 +18,28 @@ fn main() {
         process::exit(1);
     });
 
-    let file_content = fs::read_to_string(file_path).unwrap_or_else(|err| {
+    let path = Path::new(&file_path);
+    if !has_pas_extension(&path) {
+        eprintln!("Problem reading file: Invalid file extension");
+        usage_tip();
+        process::exit(1);
+    }
+
+    let file_content = fs::read_to_string(path).unwrap_or_else(|err| {
         println!("Problem reading file: {err}");
         usage_tip();
         process::exit(1);
     });
 
     println!("{file_content}");
+}
+
+fn has_pas_extension(path: &Path) -> bool {
+    if let Some(ext) = path.extension() {
+        ext == "pas"
+    } else {
+        false
+    }
 }
 
 macro_rules! def_error {
