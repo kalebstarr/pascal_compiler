@@ -48,11 +48,14 @@ def_error!(FileError, "File Error");
 fn read_args() -> Result<String, ArgsError> {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() < 2 {
+    if args.len() < 3 {
         return Err(ArgsError { msg: "Too few arguments".to_string() })
     }
 
-    Ok(args[1].clone())
+    match args[1].as_str() {
+        "-compile" => Ok(args[2].clone()),
+        _ => Err(ArgsError { msg: "Invalid argument".to_string() }),
+    }
 }
 
 fn read_file(file_path: String) -> Result<String, FileError> {
@@ -65,5 +68,5 @@ fn read_file(file_path: String) -> Result<String, FileError> {
 }
 
 fn usage_tip() {
-    println!("Usage: cargo run -- <Filename.pas>");
+    println!("Usage: cargo run -- -compile <Filename.pas>");
 }
