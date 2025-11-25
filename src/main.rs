@@ -27,7 +27,7 @@ fn main() {
 }
 
 macro_rules! def_error {
-    ($name:ident, $msg:expr) => {
+    ($name:ident) => {
         #[derive(Debug)]
         struct $name {
             msg: String,
@@ -36,13 +36,13 @@ macro_rules! def_error {
         impl Error for $name {}
         impl Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}: {}", $msg, self.msg)
+                write!(f, "{}", self.msg)
             }
         }
     };
 }
 
-def_error!(ArgsError, "Argument Error");
+def_error!(ArgsError);
 
 fn read_args() -> Result<String, ArgsError> {
     let args: Vec<String> = env::args().collect();
