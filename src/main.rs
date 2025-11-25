@@ -1,5 +1,4 @@
-use std::path::Path;
-use std::{env, error::Error, fmt::Display, fs, process};
+use std::{env, error::Error, fmt::Display, fs, path::Path, process};
 
 use lalrpop_util::lalrpop_mod;
 
@@ -12,7 +11,8 @@ lalrpop_mod!(
 pub mod ast;
 
 fn main() {
-    let file_path = read_args().unwrap_or_else(|err| {
+    let args: Vec<String> = env::args().collect();
+    let file_path = read_args(&args).unwrap_or_else(|err| {
         println!("Problem parsing arguments: {err}");
         usage_tip();
         process::exit(1);
@@ -42,41 +42,66 @@ fn has_pas_extension(path: &Path) -> bool {
     }
 }
 
-macro_rules! def_error {
-    ($name:ident) => {
-        #[derive(Debug)]
-        struct $name {
-            msg: String,
-        }
-
-        impl Error for $name {}
-        impl Display for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.msg)
-            }
-        }
-    };
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum ArgsError {
+    TooFewArguments,
+    InvalidArgument,
 }
 
-def_error!(ArgsError);
+impl Error for ArgsError {}
+impl Display for ArgsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooFewArguments => write!(f, "Too few arguments"),
+            Self::InvalidArgument => write!(f, "Invalid argument"),
+        }
+    }
+}
 
-fn read_args() -> Result<String, ArgsError> {
-    let args: Vec<String> = env::args().collect();
-
+fn read_args(args: &Vec<String>) -> Result<String, ArgsError> {
     if args.len() < 3 {
-        return Err(ArgsError {
-            msg: "Too few arguments".to_string(),
-        });
+        return Err(ArgsError::TooFewArguments);
     }
 
     match args[1].as_str() {
         "-compile" => Ok(args[2].clone()),
-        _ => Err(ArgsError {
-            msg: "Invalid argument".to_string(),
-        }),
+        _ => Err(ArgsError::InvalidArgument),
     }
 }
 
 fn usage_tip() {
     println!("Usage: cargo run -- -compile <Filename.pas>");
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_read_args_happy_path() {
+        let args = vec![
+            "executable".to_string(),
+            "-compile".to_string(),
+            "Filename.pas".to_string(),
+        ];
+        let res = read_args(&args);
+
+        assert_eq!(res, Ok("Filename.pas".to_string()));
+    }
+
+    #[test]
+    fn test_read_args_with_too_few_arguments() {
+        let args = vec!["executable".to_string(), "Filename.pas".to_string()];
+        let res = read_args(&args);
+
+        assert_eq!(res, Err(ArgsError::TooFewArguments));
+    }
+
+    #[test]
+    fn test_read_args_with_invalid_flag() {
+        let args = vec!["executable".to_string(), "-something".to_string(), "Filename.pas".to_string()];
+        let res = read_args(&args);
+
+        assert_eq!(res, Err(ArgsError::InvalidArgument));
+    }
 }
