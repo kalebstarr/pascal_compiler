@@ -104,4 +104,18 @@ mod test {
 
         assert_eq!(res, Err(ArgsError::InvalidArgument));
     }
+
+    #[test]
+    fn test_has_pas_extension() {
+        let path = Path::new("File.pas");
+        assert!(has_pas_extension(&path));
+    }
+
+    #[test]
+    fn test_does_not_have_pas_extension() {
+        let path = Path::new("File.txt");
+        let path2 = Path::new("File");
+        assert!(!has_pas_extension(&path));
+        assert!(!has_pas_extension(&path2));
+    }
 }
