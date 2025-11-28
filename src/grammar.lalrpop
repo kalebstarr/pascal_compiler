@@ -1,9 +1,28 @@
 use std::str::FromStr;
-use crate::ast::{Expr, Opcode};
+use crate::ast::{Program, Header, Variable, Expr, Opcode};
 
 use lalrpop_util::ParseError;
 
 grammar;
+
+pub Program: Box<Program> = {
+    <h: Header> <v: Variables> => Box::new(Program{ header: h, variables: v, functions: vec![] }),
+};
+
+Header: Box<Header> = {
+    "program" <Id> => Box::new(Header::Identifier(<>.to_string())),
+};
+
+Variables: Vec<Variable> = {
+    <v: Variable*> => v,
+};
+
+Variable: Variable = {
+    <i: Id> ":" "integer" "=" <e: Expr> ";" => Variable::Integer(i.to_string(), e),
+    <i: Id> ":" "double" "=" <e: Expr> ";" => Variable::Double(i.to_string(), e),
+    <i: Id> ":" "boolean" "=" <e: Expr> ";" => Variable::Boolean(i.to_string(), e),
+    <i: Id> ":" "string" "=" <e: Expr> ";" => Variable::String(i.to_string(), e),
+};
 
 pub Expr: Box<Expr> = {
     Expr ExprOp Factor => Box::new(Expr::Op(<>)),
@@ -27,6 +46,7 @@ FactorOp: Opcode= {
 
 Term: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
+    Var => Box::new(Expr::Var(<>)),
     "(" <Expr> ")",
 };
 
@@ -37,9 +57,19 @@ Num: i32 = {
         }),
 };
 
+Var: String = {
+    Id => <>.to_string(),
+};
+
 match {
     // String match
     // TODO: Determine if the should be included here or if they should be included using '_' in low prio
+    "program",
+    ":", "=", ";",
+    "integer",
+    "double",
+    "boolean",
+    "string",
     "+", "-", "*", "/", "(", ")",
 
     // Skip

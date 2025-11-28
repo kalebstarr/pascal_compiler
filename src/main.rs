@@ -31,7 +31,19 @@ fn main() {
         process::exit(1);
     });
 
-    println!("{file_content}");
+    println!(
+        "{:?}",
+        grammar::ProgramParser::new().parse(
+            "
+            program something \n\
+            some_int : integer = 10 + 2;\n\
+            some_double : double = 10 + 2;\n\
+            some_bool : boolean = 10 + 2;\n\
+            some_string : string = 10 + 2;\n\
+            some_string:string=10+2;\n\
+            "
+        )
+    );
 }
 
 fn has_pas_extension(path: &Path) -> bool {
@@ -99,7 +111,11 @@ mod test {
 
     #[test]
     fn test_read_args_with_invalid_flag() {
-        let args = vec!["executable".to_string(), "-something".to_string(), "Filename.pas".to_string()];
+        let args = vec![
+            "executable".to_string(),
+            "-something".to_string(),
+            "Filename.pas".to_string(),
+        ];
         let res = read_args(&args);
 
         assert_eq!(res, Err(ArgsError::InvalidArgument));
