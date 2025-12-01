@@ -75,6 +75,8 @@ match {
     // Skip
     r"\s*" => { }, // Whitespace
     r"//[^\n\r]*[\n\r]*" => { }, // Comments
+    r"\(\*[\s\S]*\*\)" => { },
+    r"\{[\s\S]*\}" => { },
 } else {
     // Low prio
     // TODO: Determine if numbers belong here

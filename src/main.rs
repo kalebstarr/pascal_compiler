@@ -39,9 +39,17 @@ fn main() {
             program something \n\
             some_int : integer = 10 + 2;\n\
             some_double : double = 10 + 2;\n\
+            // something
             some_bool : boolean = 10 + 2;\n\
+            (* something else *)
             some_string : string = 10 + 2;\n\
+            (* 
+                something else 
+            *)
             some_string:string=10+2;\n\
+            { 
+                something else 
+            }
             "
         )
     );
@@ -238,6 +246,73 @@ mod test {
         match invalid_3 {
             Err(ParseError::UnrecognizedEof { location, .. }) => {
                 assert_eq!(location, 29);
+            }
+            _ => panic!("Expected ParseError::UnrecognizedEof"),
+        };
+    }
+
+    #[test]
+    fn test_valid_comments() {
+        // Comments should be available everywhere in the grammar
+        let parser = grammar::HeaderParser::new();
+
+        let valid_1 = parser.parse("program Fib1 // Some comment");
+        let valid_2 = parser.parse(
+            "
+            program Fib2 (*\n\
+                some comments \n\r\
+                some other comment \
+            *)\
+            ",
+        );
+        let valid_3 = parser.parse(
+            "
+            program Fib3 {\n\
+                some comments \n\r\
+                some other comment \
+                }\
+            ",
+        );
+
+        assert_eq!(valid_1, Ok(Header::Identifier("Fib1".to_string())));
+        assert_eq!(valid_2, Ok(Header::Identifier("Fib2".to_string())));
+        assert_eq!(valid_3, Ok(Header::Identifier("Fib3".to_string())));
+    }
+
+    #[test]
+    fn test_invalid_comments() {
+        // Comments should be available everywhere in the grammar
+        let parser = grammar::HeaderParser::new();
+
+        let invalid_1 = parser.parse(
+            "
+            program Fib1 (*\n\
+                some comments \n\r\
+                some other comment \
+            \
+            ",
+        );
+        let invalid_2 = parser.parse(
+            "
+            program Fib2 {\n\
+                some comments \n\r\
+                some other comment \
+                \
+            ",
+        );
+
+        match invalid_1 {
+            Err(ParseError::UnrecognizedToken {
+                token: (_start, ref token, _end),
+                expected: _,
+            }) => {
+                assert_eq!(token.1, "(");
+            }
+            _ => panic!("Expected ParseError::UnrecognizedToken"),
+        };
+        match invalid_2 {
+            Err(ParseError::InvalidToken { location, .. }) => {
+                assert_eq!(location, 26);
             }
             _ => panic!("Expected ParseError::UnrecognizedEof"),
         };
