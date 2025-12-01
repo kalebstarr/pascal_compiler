@@ -9,15 +9,15 @@ pub Program: Box<Program> = {
     <h: Header> <v: Variables> => Box::new(Program{ header: h, variables: v, functions: vec![] }),
 };
 
-Header: Box<Header> = {
+pub Header: Box<Header> = {
     "program" <Id> => Box::new(Header::Identifier(<>.to_string())),
 };
 
-Variables: Vec<Variable> = {
+pub Variables: Vec<Variable> = {
     <v: Variable*> => v,
 };
 
-Variable: Variable = {
+pub Variable: Variable = {
     <i: Id> ":" "integer" "=" <e: Expr> ";" => Variable::Integer(i.to_string(), e),
     <i: Id> ":" "double" "=" <e: Expr> ";" => Variable::Double(i.to_string(), e),
     <i: Id> ":" "boolean" "=" <e: Expr> ";" => Variable::Boolean(i.to_string(), e),

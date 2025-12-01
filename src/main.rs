@@ -1,3 +1,4 @@
+use lalrpop_util::ParseError;
 use std::{env, error::Error, fmt::Display, fs, path::Path, process};
 
 use lalrpop_util::lalrpop_mod;
@@ -87,6 +88,10 @@ fn usage_tip() {
 
 #[cfg(test)]
 mod test {
+    use lalrpop_util::lexer::Token;
+
+    use crate::ast::Header;
+
     use super::*;
 
     #[test]
@@ -133,5 +138,32 @@ mod test {
         let path2 = Path::new("File");
         assert!(!has_pas_extension(&path));
         assert!(!has_pas_extension(&path2));
+    }
+
+    #[test]
+    fn test_header_grammar() {
+        let parser = grammar::HeaderParser::new();
+        let valid_header = parser.parse("program Fibonacci");
+        let invalid_header_1 = parser.parse("program program");
+        let invalid_header_2 = parser.parse("programsomething");
+
+        assert_eq!(
+            valid_header,
+            Ok(Box::new(Header::Identifier("Fibonacci".to_string())))
+        );
+        assert_eq!(
+            invalid_header_1,
+            Err(ParseError::UnrecognizedToken {
+                token: (8, Token(16, "program"), 15),
+                expected: vec!["Id".to_string()]
+            })
+        );
+        assert_eq!(
+            invalid_header_2,
+            Err(ParseError::UnrecognizedToken {
+                token: (0, Token(1, "programsomething"), 16),
+                expected: vec!["\"program\"".to_string()]
+            })
+        );
     }
 }
