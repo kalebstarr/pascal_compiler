@@ -149,7 +149,7 @@ mod test {
 
         assert_eq!(
             valid_header,
-            Ok(Box::new(Header::Identifier("Fibonacci".to_string())))
+            Ok(Header::Identifier("Fibonacci".to_string()))
         );
         assert_eq!(
             invalid_header_1,

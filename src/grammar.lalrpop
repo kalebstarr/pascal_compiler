@@ -9,8 +9,8 @@ pub Program: Box<Program> = {
     <h: Header> <v: Variables> => Box::new(Program{ header: h, variables: v, functions: vec![] }),
 };
 
-pub Header: Box<Header> = {
-    "program" <Id> => Box::new(Header::Identifier(<>.to_string())),
+pub Header: Header = {
+    "program" <Id> => Header::Identifier(<>.to_string()),
 };
 
 pub Variables: Vec<Variable> = {

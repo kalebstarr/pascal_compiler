@@ -1,7 +1,7 @@
 // TODO: Flesh out
 #[derive(Debug, Clone, PartialEq)]
 pub struct Program {
-    pub header: Box<Header>,
+    pub header: Header,
     pub variables: Vec<Variable>,
     pub functions: Vec<Function>,
 }
