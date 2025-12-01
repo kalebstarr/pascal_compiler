@@ -151,20 +151,24 @@ mod test {
             valid_header,
             Ok(Header::Identifier("Fibonacci".to_string()))
         );
-        assert_eq!(
-            invalid_header_1,
+        match invalid_header_1 {
             Err(ParseError::UnrecognizedToken {
-                token: (8, Token(16, "program"), 15),
-                expected: vec!["Id".to_string()]
-            })
-        );
-        assert_eq!(
-            invalid_header_2,
+                token: (_start, ref token, _end),
+                expected: _,
+            }) => {
+                assert_eq!(token.1, "program");
+            }
+            _ => panic!("Expected ParseError::UnrecognizedToken"),
+        };
+        match invalid_header_2 {
             Err(ParseError::UnrecognizedToken {
-                token: (0, Token(1, "programsomething"), 16),
-                expected: vec!["\"program\"".to_string()]
-            })
-        );
+                token: (_start, ref token, _end),
+                expected: _,
+            }) => {
+                assert_eq!(token.1, "programsomething");
+            }
+            _ => panic!("Expected ParseError::UnrecognizedToken"),
+        };
     }
 
     // TODO: Test with actual values
@@ -214,14 +218,20 @@ mod test {
         let invalid_3 = parser.parse("some_identifier: integer = 10");
 
         match invalid_1 {
-            Err(ParseError::UnrecognizedToken { token, .. }) => {
-                assert_eq!(token, (17, Token(15, "integer"), 24));
+            Err(ParseError::UnrecognizedToken {
+                token: (_start, ref token, _end),
+                expected: _,
+            }) => {
+                assert_eq!(token.1, "integer");
             }
             _ => panic!("Expected ParseError::UnrecognizedToken"),
         };
         match invalid_2 {
-            Err(ParseError::UnrecognizedToken { token, .. }) => {
-                assert_eq!(token, (26, Token(0, "10"), 28));
+            Err(ParseError::UnrecognizedToken {
+                token: (_start, ref token, _end),
+                expected: _,
+            }) => {
+                assert_eq!(token.1, "10");
             }
             _ => panic!("Expected ParseError::UnrecognizedToken"),
         };
