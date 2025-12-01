@@ -90,7 +90,7 @@ fn usage_tip() {
 mod test {
     use lalrpop_util::lexer::Token;
 
-    use crate::ast::Header;
+    use crate::ast::{Expr, Header, Variable};
 
     use super::*;
 
@@ -165,5 +165,71 @@ mod test {
                 expected: vec!["\"program\"".to_string()]
             })
         );
+    }
+
+    // TODO: Test with actual values
+    #[test]
+    fn test_valid_variable_grammar() {
+        let parser = grammar::VariableParser::new();
+        let valid_integer = parser.parse("some_identifier : integer = 10;");
+        let valid_double = parser.parse("some_identifier: double = 10 ;");
+        let valid_boolean = parser.parse("some_identifier :boolean = 10  ;");
+        let valid_string = parser.parse("some_identifier : string= 10;");
+
+        assert_eq!(
+            valid_integer,
+            Ok(Variable::Integer(
+                "some_identifier".to_string(),
+                Box::new(Expr::Number(10))
+            ))
+        );
+        assert_eq!(
+            valid_double,
+            Ok(Variable::Double(
+                "some_identifier".to_string(),
+                Box::new(Expr::Number(10))
+            ))
+        );
+        assert_eq!(
+            valid_boolean,
+            Ok(Variable::Boolean(
+                "some_identifier".to_string(),
+                Box::new(Expr::Number(10))
+            ))
+        );
+        assert_eq!(
+            valid_string,
+            Ok(Variable::String(
+                "some_identifier".to_string(),
+                Box::new(Expr::Number(10))
+            ))
+        );
+    }
+
+    #[test]
+    fn test_invalid_variable_grammar() {
+        let parser = grammar::VariableParser::new();
+        let invalid_1 = parser.parse("some_identifier  integer = 10;");
+        let invalid_2 = parser.parse("some_identifier: integer  10;");
+        let invalid_3 = parser.parse("some_identifier: integer = 10");
+
+        match invalid_1 {
+            Err(ParseError::UnrecognizedToken { token, .. }) => {
+                assert_eq!(token, (17, Token(15, "integer"), 24));
+            }
+            _ => panic!("Expected ParseError::UnrecognizedToken"),
+        };
+        match invalid_2 {
+            Err(ParseError::UnrecognizedToken { token, .. }) => {
+                assert_eq!(token, (26, Token(0, "10"), 28));
+            }
+            _ => panic!("Expected ParseError::UnrecognizedToken"),
+        };
+        match invalid_3 {
+            Err(ParseError::UnrecognizedEof { location, .. }) => {
+                assert_eq!(location, 29);
+            }
+            _ => panic!("Expected ParseError::UnrecognizedEof"),
+        };
     }
 }
