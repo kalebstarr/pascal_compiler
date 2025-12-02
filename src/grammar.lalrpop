@@ -18,6 +18,14 @@ match {
     // TODO: Determine terminals should be included here or if they should be included using '_' in low prio
     "program",
 
+    // Operators
+    // Arithmetic
+    "+", "-", "*", "/", "%",
+    // Comparison
+    "=", "<", ">", "<=", ">=", "<>",
+    // Boolean
+    "and", "or", "not",
+
     // Skip
     r"\s*" => { }, // Whitespace
     r"//[^\n\r]*[\n\r]*" => { }, // Comments
