@@ -36,16 +36,11 @@ fn main() {
         grammar::ProgramParser::new().parse(
             "
             program something \n\
-            some_int : integer = 10 + 2;\n\
-            some_double : double = 10 + 2;\n\
             // something
-            some_bool : boolean = 10 + 2;\n\
             (* something else *)
-            some_string : string = 10 + 2;\n\
             (* 
                 something else 
             *)
-            some_string:string=10+2;\n\
             { 
                 something else 
             }
@@ -95,7 +90,7 @@ fn usage_tip() {
 
 #[cfg(test)]
 mod test {
-    use crate::ast::{Expr, Header, Variable};
+    use crate::ast::{Header};
     use lalrpop_util::ParseError;
 
     use super::*;
@@ -177,78 +172,6 @@ mod test {
         };
     }
 
-    // TODO: Test with actual values
-    #[test]
-    fn test_valid_variable_grammar() {
-        let parser = grammar::VariableParser::new();
-        let valid_integer = parser.parse("some_identifier : integer = 10;");
-        let valid_double = parser.parse("some_identifier: double = 10 ;");
-        let valid_boolean = parser.parse("some_identifier :boolean = 10  ;");
-        let valid_string = parser.parse("some_identifier : string= 10;");
-
-        assert_eq!(
-            valid_integer,
-            Ok(Variable::Integer(
-                "some_identifier".to_string(),
-                Box::new(Expr::Number(10))
-            ))
-        );
-        assert_eq!(
-            valid_double,
-            Ok(Variable::Double(
-                "some_identifier".to_string(),
-                Box::new(Expr::Number(10))
-            ))
-        );
-        assert_eq!(
-            valid_boolean,
-            Ok(Variable::Boolean(
-                "some_identifier".to_string(),
-                Box::new(Expr::Number(10))
-            ))
-        );
-        assert_eq!(
-            valid_string,
-            Ok(Variable::String(
-                "some_identifier".to_string(),
-                Box::new(Expr::Number(10))
-            ))
-        );
-    }
-
-    #[test]
-    fn test_invalid_variable_grammar() {
-        let parser = grammar::VariableParser::new();
-        let invalid_1 = parser.parse("some_identifier  integer = 10;");
-        let invalid_2 = parser.parse("some_identifier: integer  10;");
-        let invalid_3 = parser.parse("some_identifier: integer = 10");
-
-        match invalid_1 {
-            Err(ParseError::UnrecognizedToken {
-                token: (_start, ref token, _end),
-                expected: _,
-            }) => {
-                assert_eq!(token.1, "integer");
-            }
-            _ => panic!("Expected ParseError::UnrecognizedToken"),
-        };
-        match invalid_2 {
-            Err(ParseError::UnrecognizedToken {
-                token: (_start, ref token, _end),
-                expected: _,
-            }) => {
-                assert_eq!(token.1, "10");
-            }
-            _ => panic!("Expected ParseError::UnrecognizedToken"),
-        };
-        match invalid_3 {
-            Err(ParseError::UnrecognizedEof { location, .. }) => {
-                assert_eq!(location, 29);
-            }
-            _ => panic!("Expected ParseError::UnrecognizedEof"),
-        };
-    }
-
     #[test]
     fn test_valid_comments() {
         // Comments should be available everywhere in the grammar
@@ -300,13 +223,10 @@ mod test {
         );
 
         match invalid_1 {
-            Err(ParseError::UnrecognizedToken {
-                token: (_start, ref token, _end),
-                expected: _,
-            }) => {
-                assert_eq!(token.1, "(");
+            Err(ParseError::InvalidToken { location, .. }) => {
+                assert_eq!(location, 26);
             }
-            _ => panic!("Expected ParseError::UnrecognizedToken"),
+            _ => panic!("Expected ParseError::UnrecognizedEof"),
         };
         match invalid_2 {
             Err(ParseError::InvalidToken { location, .. }) => {

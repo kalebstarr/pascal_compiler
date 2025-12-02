@@ -1,76 +1,22 @@
 use std::str::FromStr;
-use crate::ast::{Program, Header, Variable, Expr, Opcode};
+use crate::ast::{Program, Header};
 
 use lalrpop_util::ParseError;
 
 grammar;
 
 pub Program: Box<Program> = {
-    <h: Header> <v: Variables> => Box::new(Program{ header: h, variables: v, functions: vec![] }),
+    <h: Header> => Box::new(Program{ header: h }),
 };
 
 pub Header: Header = {
     "program" <Id> => Header::Identifier(<>.to_string()),
 };
 
-pub Variables: Vec<Variable> = {
-    <v: Variable*> => v,
-};
-
-pub Variable: Variable = {
-    <i: Id> ":" "integer" "=" <e: Expr> ";" => Variable::Integer(i.to_string(), e),
-    <i: Id> ":" "double" "=" <e: Expr> ";" => Variable::Double(i.to_string(), e),
-    <i: Id> ":" "boolean" "=" <e: Expr> ";" => Variable::Boolean(i.to_string(), e),
-    <i: Id> ":" "string" "=" <e: Expr> ";" => Variable::String(i.to_string(), e),
-};
-
-pub Expr: Box<Expr> = {
-    Expr ExprOp Factor => Box::new(Expr::Op(<>)),
-    Factor,
-};
-
-ExprOp: Opcode = {
-    "+" => Opcode::Add,
-    "-" => Opcode::Sub,
-};
-
-Factor: Box<Expr> = {
-    Factor FactorOp Term => Box::new(Expr::Op(<>)),
-    Term,
-};
-
-FactorOp: Opcode= {
-    "*" => Opcode::Mul,
-    "/" => Opcode::Div,
-};
-
-Term: Box<Expr> = {
-    Num => Box::new(Expr::Number(<>)),
-    Var => Box::new(Expr::Var(<>)),
-    "(" <Expr> ")",
-};
-
-Num: i32 = {
-    r"[0-9]+" =>? i32::from_str(<>)
-        .map_err(|_| ParseError::User {
-            error: "number is too big"
-        }),
-};
-
-Var: String = {
-    Id => <>.to_string(),
-};
-
 match {
     // String match
-    // TODO: Determine if the should be included here or if they should be included using '_' in low prio
+    // TODO: Determine terminals should be included here or if they should be included using '_' in low prio
     "program",
-    ":", "=", ";",
-    "integer",
-    "double",
-    "boolean",
-    "string",
-    "+", "-", "*", "/", "(", ")",
 
     // Skip
     r"\s*" => { }, // Whitespace
