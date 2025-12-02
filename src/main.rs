@@ -1,4 +1,3 @@
-use lalrpop_util::ParseError;
 use std::{env, error::Error, fmt::Display, fs, path::Path, process};
 
 use lalrpop_util::lalrpop_mod;
@@ -96,9 +95,8 @@ fn usage_tip() {
 
 #[cfg(test)]
 mod test {
-    use lalrpop_util::lexer::Token;
-
     use crate::ast::{Expr, Header, Variable};
+    use lalrpop_util::ParseError;
 
     use super::*;
 
