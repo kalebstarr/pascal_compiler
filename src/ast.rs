@@ -7,3 +7,11 @@ pub struct Program {
 pub enum Header {
     Identifier(String),
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Literal {
+    Integer(i32),
+    Double(f64),
+    String(String),
+    Boolean(bool),
+}
