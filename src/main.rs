@@ -96,7 +96,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_read_args_happy_path() {
+    fn read_args_happy_path() {
         let args = vec![
             "executable".to_string(),
             "-compile".to_string(),
@@ -108,7 +108,7 @@ mod test {
     }
 
     #[test]
-    fn test_read_args_with_too_few_arguments() {
+    fn read_args_with_too_few_arguments() {
         let args = vec!["executable".to_string(), "Filename.pas".to_string()];
         let res = read_args(&args);
 
@@ -116,7 +116,7 @@ mod test {
     }
 
     #[test]
-    fn test_read_args_with_invalid_flag() {
+    fn read_args_with_invalid_flag() {
         let args = vec![
             "executable".to_string(),
             "-something".to_string(),
@@ -128,13 +128,13 @@ mod test {
     }
 
     #[test]
-    fn test_has_pas_extension() {
+    fn has_valid_pas_extension() {
         let path = Path::new("File.pas");
         assert!(has_pas_extension(&path));
     }
 
     #[test]
-    fn test_does_not_have_pas_extension() {
+    fn does_not_have_pas_extension() {
         let path = Path::new("File.txt");
         let path2 = Path::new("File");
         assert!(!has_pas_extension(&path));
@@ -142,7 +142,7 @@ mod test {
     }
 
     #[test]
-    fn test_header_grammar() {
+    fn header_grammar() {
         let parser = grammar::HeaderParser::new();
         let valid_header = parser.parse("program Fibonacci");
         let invalid_header_1 = parser.parse("program program");
@@ -173,7 +173,7 @@ mod test {
     }
 
     #[test]
-    fn test_valid_comments() {
+    fn valid_comments() {
         // Comments should be available everywhere in the grammar
         let parser = grammar::HeaderParser::new();
 
@@ -201,7 +201,7 @@ mod test {
     }
 
     #[test]
-    fn test_invalid_comments() {
+    fn invalid_comments() {
         // Comments should be available everywhere in the grammar
         let parser = grammar::HeaderParser::new();
 
@@ -240,7 +240,7 @@ mod test {
     }
 
     #[test]
-    fn test_string_grammar() {
+    fn string_grammar() {
         let parser = grammar::StringParser::new();
 
         let valid_1 = parser.parse("''");
