@@ -61,7 +61,7 @@ UnaryOp: Opcode = {
     "not" => Opcode::Not,
 };
 
-Term: Box<Expr> = {
+pub Term: Box<Expr> = {
     Integer => Box::new(Expr::Integer(<>)),
     Double => Box::new(Expr::Double(<>)),
     String => Box::new(Expr::String(<>)),

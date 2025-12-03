@@ -90,7 +90,7 @@ fn usage_tip() {
 
 #[cfg(test)]
 mod test {
-    use crate::ast::Header;
+    use crate::ast::{Expr, Header};
     use lalrpop_util::ParseError;
 
     use super::*;
@@ -267,6 +267,53 @@ mod test {
                 expected: _,
             }) => {
                 assert_eq!(token.1, "some");
+            }
+            _ => panic!("Expected ParseError::UnrecognizedToken"),
+        };
+    }
+
+    #[test]
+    fn term_grammar() {
+        let parser = grammar::TermParser::new();
+
+        let integer = parser.parse("100");
+        let double = parser.parse("100.100");
+        let string = parser.parse("'some string'");
+        let boolean = parser.parse("true");
+        let identifier = parser.parse("some_identifier_9");
+
+        let invalid = parser.parse("9some_identifier_9");
+
+        let brackets_integer = parser.parse("(100)");
+        let brackets_double = parser.parse("(100.100)");
+        let brackets_string = parser.parse("('some string')");
+        let brackets_boolean = parser.parse("(true)");
+        let brackets_identifier = parser.parse("some_identifier_9");
+
+        assert_eq!(integer, Ok(Box::new(Expr::Integer(100))));
+        assert_eq!(double, Ok(Box::new(Expr::Double(100.100))));
+        assert_eq!(
+            string,
+            Ok(Box::new(Expr::String(String::from("'some string'"))))
+        );
+        assert_eq!(boolean, Ok(Box::new(Expr::Boolean(true))));
+        assert_eq!(identifier, Ok(Box::new(Expr::Identifier(String::from("some_identifier_9")))));
+
+        assert_eq!(brackets_integer, Ok(Box::new(Expr::Integer(100))));
+        assert_eq!(brackets_double, Ok(Box::new(Expr::Double(100.100))));
+        assert_eq!(
+            brackets_string,
+            Ok(Box::new(Expr::String(String::from("'some string'"))))
+        );
+        assert_eq!(brackets_boolean, Ok(Box::new(Expr::Boolean(true))));
+        assert_eq!(brackets_identifier, Ok(Box::new(Expr::Identifier(String::from("some_identifier_9")))));
+
+        match invalid {
+            Err(ParseError::UnrecognizedToken {
+                token: (_start, ref token, _end),
+                expected: _,
+            }) => {
+                assert_eq!(token.1, "some_identifier_9");
             }
             _ => panic!("Expected ParseError::UnrecognizedToken"),
         };
