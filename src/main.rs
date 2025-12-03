@@ -223,16 +223,19 @@ mod test {
         );
 
         match invalid_1 {
-            Err(ParseError::InvalidToken { location, .. }) => {
-                assert_eq!(location, 26);
+            Err(ParseError::UnrecognizedToken {
+                token: (_start, ref token, _end),
+                expected: _,
+            }) => {
+                assert_eq!(token.1, "(");
             }
-            _ => panic!("Expected ParseError::UnrecognizedEof"),
+            _ => panic!("Expected ParseError::UnrecognizedToken"),
         };
         match invalid_2 {
             Err(ParseError::InvalidToken { location, .. }) => {
                 assert_eq!(location, 26);
             }
-            _ => panic!("Expected ParseError::UnrecognizedEof"),
+            _ => panic!("Expected ParseError::InvalidToken"),
         };
     }
 }
