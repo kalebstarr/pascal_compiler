@@ -39,8 +39,8 @@ AddOp: Opcode = {
 };
 
 MulExpr: Box<Expr> = {
-    MulExpr MulOp Term => Box::new(Expr::Op(<>)),
-    Term,
+    MulExpr MulOp UnaryExpr => Box::new(Expr::Op(<>)),
+    UnaryExpr,
 };
 
 MulOp: Opcode= {
@@ -48,6 +48,16 @@ MulOp: Opcode= {
     "/" => Opcode::Div,
     "%" => Opcode::Mod,
     "and" => Opcode::And,
+};
+
+UnaryExpr: Box<Expr> = {
+    UnaryOp UnaryExpr => Box::new(Expr::Unary(<>)),
+    Term,
+};
+
+UnaryOp: Opcode = {
+    "-" => Opcode::Neg,
+    "not" => Opcode::Not,
 };
 
 Term: Box<Expr> = {

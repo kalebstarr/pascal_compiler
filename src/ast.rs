@@ -16,6 +16,7 @@ pub enum Expr {
     Boolean(bool),
     Identifier(String),
     Op(Box<Expr>, Opcode, Box<Expr>),
+    Unary(Opcode, Box<Expr>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -35,5 +36,6 @@ pub enum Opcode {
 
     And,
     Or,
-    Not
+    Not,
+    Neg,
 }
