@@ -50,7 +50,7 @@ MulOp: Opcode= {
     "and" => Opcode::And,
 };
 
-UnaryExpr: Box<Expr> = {
+pub UnaryExpr: Box<Expr> = {
     UnaryOp UnaryExpr => Box::new(Expr::Unary(<>)),
     Term,
 };

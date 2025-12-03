@@ -90,7 +90,7 @@ fn usage_tip() {
 
 #[cfg(test)]
 mod test {
-    use crate::ast::{Expr, Header};
+    use crate::ast::{Expr, Header, Opcode};
     use lalrpop_util::ParseError;
 
     use super::*;
@@ -297,7 +297,12 @@ mod test {
             Ok(Box::new(Expr::String(String::from("'some string'"))))
         );
         assert_eq!(boolean, Ok(Box::new(Expr::Boolean(true))));
-        assert_eq!(identifier, Ok(Box::new(Expr::Identifier(String::from("some_identifier_9")))));
+        assert_eq!(
+            identifier,
+            Ok(Box::new(Expr::Identifier(String::from(
+                "some_identifier_9"
+            ))))
+        );
 
         assert_eq!(brackets_integer, Ok(Box::new(Expr::Integer(100))));
         assert_eq!(brackets_double, Ok(Box::new(Expr::Double(100.100))));
@@ -306,7 +311,12 @@ mod test {
             Ok(Box::new(Expr::String(String::from("'some string'"))))
         );
         assert_eq!(brackets_boolean, Ok(Box::new(Expr::Boolean(true))));
-        assert_eq!(brackets_identifier, Ok(Box::new(Expr::Identifier(String::from("some_identifier_9")))));
+        assert_eq!(
+            brackets_identifier,
+            Ok(Box::new(Expr::Identifier(String::from(
+                "some_identifier_9"
+            ))))
+        );
 
         match invalid {
             Err(ParseError::UnrecognizedToken {
@@ -317,5 +327,22 @@ mod test {
             }
             _ => panic!("Expected ParseError::UnrecognizedToken"),
         };
+    }
+
+    #[test]
+    fn unary_grammar() {
+        let parser = grammar::UnaryExprParser::new();
+
+        let valid_1 = parser.parse("+ 5");
+        let valid_2 = parser.parse("- 5");
+        let valid_3 = parser.parse("not true");
+        let valid_4 = parser.parse("- + - 5");
+        let invalid = parser.parse("5 + ");
+
+        assert_eq!(valid_1, Ok(Box::new(Expr::Unary(Opcode::Pos, Box::new(Expr::Integer(5))))));
+        assert_eq!(valid_2, Ok(Box::new(Expr::Unary(Opcode::Neg, Box::new(Expr::Integer(5))))));
+        assert_eq!(valid_3, Ok(Box::new(Expr::Unary(Opcode::Not, Box::new(Expr::Boolean(true))))));
+        assert!(valid_4.is_ok());
+        assert!(invalid.is_err());
     }
 }
