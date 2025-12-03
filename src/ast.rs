@@ -9,9 +9,31 @@ pub enum Header {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Literal {
+pub enum Expr {
     Integer(i32),
     Double(f64),
     String(String),
     Boolean(bool),
+    Identifier(String),
+    Op(Box<Expr>, Opcode, Box<Expr>),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Opcode {
+    Mul,
+    Div,
+    Mod,
+    Add,
+    Sub,
+
+    Eq,
+    Lt,
+    Gt,
+    Le,
+    Ge,
+    Neq,
+
+    And,
+    Or,
+    Not
 }

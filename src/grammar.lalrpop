@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Program, Header};
+use crate::ast::{Program, Header, Expr, Opcode};
 
 use lalrpop_util::ParseError;
 
@@ -11,6 +11,79 @@ pub Program: Box<Program> = {
 
 pub Header: Header = {
     "program" <Id> => Header::Identifier(<>.to_string()),
+};
+
+pub Expr: Box<Expr> = {
+    AddExpr RelOp AddExpr => Box::new(Expr::Op(<>)),
+    AddExpr,
+};
+
+RelOp: Opcode = {
+    "=" => Opcode::Eq,
+    "<" => Opcode::Lt,
+    ">" => Opcode::Gt,
+    "<=" => Opcode::Le,
+    ">=" => Opcode::Ge,
+    "<>" => Opcode::Neq,
+}
+
+AddExpr: Box<Expr> = {
+    AddExpr AddOp MulExpr => Box::new(Expr::Op(<>)),
+    MulExpr,
+}
+
+AddOp: Opcode = {
+    "+" => Opcode::Add,
+    "-" => Opcode::Sub,
+    "or" => Opcode::Or,
+};
+
+MulExpr: Box<Expr> = {
+    MulExpr MulOp Term => Box::new(Expr::Op(<>)),
+    Term,
+};
+
+MulOp: Opcode= {
+    "*" => Opcode::Mul,
+    "/" => Opcode::Div,
+    "%" => Opcode::Mod,
+    "and" => Opcode::And,
+};
+
+Term: Box<Expr> = {
+    Integer => Box::new(Expr::Integer(<>)),
+    Double => Box::new(Expr::Double(<>)),
+    String => Box::new(Expr::String(<>)),
+    Boolean => Box::new(Expr::Boolean(<>)),
+    Identifier => Box::new(Expr::Identifier(<>)),
+    "(" <Expr> ")",
+};
+
+Integer: i32 = {
+    r"[0-9]+" =>? i32::from_str(<>)
+        .map_err(|_| ParseError::User {
+            error: "number is too big"
+        }),
+};
+
+Double: f64 = {
+    r"[0-9]+\.[0-9]+" =>? f64::from_str(<>)
+        .map_err(|_| ParseError::User {
+            error: "number is too big"
+        }),
+};
+
+String: String = {
+    r"'[^']*'" => <>.to_string(),
+};
+
+Boolean: bool = {
+    "true" => true,
+    "false" => false,
+}
+
+Identifier: String = {
+    Id => <>.to_string(),
 };
 
 match {
@@ -26,6 +99,9 @@ match {
     // Boolean
     "and", "or", "not",
 
+    "(", ")",
+    "true", "false",
+
     // Skip
     r"\s*" => { }, // Whitespace
     r"//[^\n\r]*[\n\r]*" => { }, // Comments
@@ -35,5 +111,7 @@ match {
     // Low prio
     // TODO: Determine if numbers belong here
     r"[0-9]+",
+    r"[0-9]+\.[0-9]+",
+    r"'[^']*'",
     r"[a-zA-Z_][a-zA-Z0-9_]*" => Id,
 }
