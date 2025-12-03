@@ -84,7 +84,7 @@ Double: f64 = {
         }),
 };
 
-String: String = {
+pub String: String = {
     r"'[^']*'" => <>.to_string(),
 };
 

@@ -90,7 +90,7 @@ fn usage_tip() {
 
 #[cfg(test)]
 mod test {
-    use crate::ast::{Header};
+    use crate::ast::Header;
     use lalrpop_util::ParseError;
 
     use super::*;
@@ -236,6 +236,39 @@ mod test {
                 assert_eq!(location, 26);
             }
             _ => panic!("Expected ParseError::InvalidToken"),
+        };
+    }
+
+    #[test]
+    fn test_string_grammar() {
+        let parser = grammar::StringParser::new();
+
+        let valid_1 = parser.parse("''");
+        let valid_2 = parser.parse("'some string'");
+        // TODO: Add escaped single quotes to regex
+        let valid_3 = parser.parse("'some \'escaped\' string'");
+
+        let invalid_1 = parser.parse("'some string");
+        let invalid_2 = parser.parse("some string'");
+
+        assert_eq!(valid_1, Ok(String::from("''")));
+        assert_eq!(valid_2, Ok(String::from("'some string'")));
+        assert_eq!(valid_3, Ok(String::from("'some \'escaped\' string'")));
+
+        match invalid_1 {
+            Err(ParseError::InvalidToken { location, .. }) => {
+                assert_eq!(location, 0);
+            }
+            _ => panic!("Expected ParseError::InvalidToken"),
+        };
+        match invalid_2 {
+            Err(ParseError::UnrecognizedToken {
+                token: (_start, ref token, _end),
+                expected: _,
+            }) => {
+                assert_eq!(token.1, "some");
+            }
+            _ => panic!("Expected ParseError::UnrecognizedToken"),
         };
     }
 }
