@@ -37,5 +37,6 @@ pub enum Opcode {
     And,
     Or,
     Not,
+    Pos,
     Neg,
 }
