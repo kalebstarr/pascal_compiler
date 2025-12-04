@@ -369,4 +369,123 @@ mod test {
         let err = invalid.unwrap_err();
         assert!(format!("{:?}", err).contains("+"));
     }
+
+    #[test]
+    fn left_associativity() {
+        let parser = grammar::ExprParser::new();
+
+        let mul_assoc = parser.parse("1 * 2 / 3");
+        let add_assoc = parser.parse("1 + 2 - 3");
+
+        assert_eq!(
+            mul_assoc.unwrap(),
+            Box::new(Expr::Binary(
+                Box::new(Expr::Binary(
+                    Box::new(Expr::Literal(Literal::Integer(1))),
+                    BinaryOp::Mul,
+                    Box::new(Expr::Literal(Literal::Integer(2)))
+                )),
+                BinaryOp::Div,
+                Box::new(Expr::Literal(Literal::Integer(3)))
+            ))
+        );
+        assert_eq!(
+            add_assoc.unwrap(),
+            Box::new(Expr::Binary(
+                Box::new(Expr::Binary(
+                    Box::new(Expr::Literal(Literal::Integer(1))),
+                    BinaryOp::Add,
+                    Box::new(Expr::Literal(Literal::Integer(2)))
+                )),
+                BinaryOp::Sub,
+                Box::new(Expr::Literal(Literal::Integer(3)))
+            ))
+        );
+    }
+
+    #[test]
+    fn precedence() {
+        let parser = grammar::ExprParser::new();
+
+        let right_mul = parser.parse("1 + 2 * 3");
+        let left_mul = parser.parse("1 % 2 - 3");
+
+        assert_eq!(
+            right_mul.unwrap(),
+            Box::new(Expr::Binary(
+                Box::new(Expr::Literal(Literal::Integer(1))),
+                BinaryOp::Add,
+                Box::new(Expr::Binary(
+                    Box::new(Expr::Literal(Literal::Integer(2))),
+                    BinaryOp::Mul,
+                    Box::new(Expr::Literal(Literal::Integer(3)))
+                )),
+            ))
+        );
+        assert_eq!(
+            left_mul.unwrap(),
+            Box::new(Expr::Binary(
+                Box::new(Expr::Binary(
+                    Box::new(Expr::Literal(Literal::Integer(1))),
+                    BinaryOp::Mod,
+                    Box::new(Expr::Literal(Literal::Integer(2)))
+                )),
+                BinaryOp::Sub,
+                Box::new(Expr::Literal(Literal::Integer(3))),
+            ))
+        );
+    }
+
+    #[test]
+    fn comparison_basic() {
+        let parser = grammar::ExprParser::new();
+
+        let equal = parser.parse("5 = 5");
+        let more_equal = parser.parse("10 > 5 = 5");
+
+        assert_eq!(
+            equal.unwrap(),
+            Box::new(Expr::Binary(
+                Box::new(Expr::Literal(Literal::Integer(5))),
+                BinaryOp::Eq,
+                Box::new(Expr::Literal(Literal::Integer(5)))
+            ))
+        );
+        assert_eq!(
+            more_equal.unwrap(),
+            Box::new(Expr::Binary(
+                Box::new(Expr::Binary(
+                    Box::new(Expr::Literal(Literal::Integer(10))),
+                    BinaryOp::Gt,
+                    Box::new(Expr::Literal(Literal::Integer(5)))
+                )),
+                BinaryOp::Eq,
+                Box::new(Expr::Literal(Literal::Integer(5)))
+            ))
+        );
+    }
+
+    #[test]
+    fn complex() {
+        let parser = grammar::ExprParser::new();
+
+        let complex = parser.parse("1 * 2 <> 3 - 4");
+
+        assert_eq!(
+            complex.unwrap(),
+            Box::new(Expr::Binary(
+                Box::new(Expr::Binary(
+                    Box::new(Expr::Literal(Literal::Integer(1))),
+                    BinaryOp::Mul,
+                    Box::new(Expr::Literal(Literal::Integer(2)))
+                )),
+                BinaryOp::Neq,
+                Box::new(Expr::Binary(
+                    Box::new(Expr::Literal(Literal::Integer(3))),
+                    BinaryOp::Sub,
+                    Box::new(Expr::Literal(Literal::Integer(4)))
+                ))
+            ))
+        );
+    }
 }
