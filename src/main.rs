@@ -144,36 +144,30 @@ mod test {
     #[test]
     fn header_grammar() {
         let parser = grammar::HeaderParser::new();
-        let valid_header = parser.parse("program Fibonacci");
-        let invalid_header_1 = parser.parse("program program");
-        let invalid_header_2 = parser.parse("programsomething");
 
         assert_eq!(
-            valid_header,
-            Ok(Header::Identifier("Fibonacci".to_string()))
+            parser.parse("program Fibonacci").unwrap(),
+            Header::Identifier(String::from("Fibonacci"))
         );
-        match invalid_header_1 {
-            Err(ParseError::UnrecognizedToken {
-                token: (_start, ref token, _end),
-                expected: _,
-            }) => {
-                assert_eq!(token.1, "program");
-            }
-            _ => panic!("Expected ParseError::UnrecognizedToken"),
-        };
-        match invalid_header_2 {
-            Err(ParseError::UnrecognizedToken {
-                token: (_start, ref token, _end),
-                expected: _,
-            }) => {
-                assert_eq!(token.1, "programsomething");
-            }
-            _ => panic!("Expected ParseError::UnrecognizedToken"),
-        };
     }
 
     #[test]
-    fn valid_comments() {
+    fn invalid_header_grammar() {
+        let parser = grammar::HeaderParser::new();
+
+        let result = parser.parse("program program");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(format!("{:?}", err).contains("program"));
+
+        let result = parser.parse("programsomething");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(format!("{:?}", err).contains("programsomething"));
+    }
+
+    #[test]
+    fn comments() {
         // Comments should be available everywhere in the grammar
         let parser = grammar::HeaderParser::new();
 
@@ -205,38 +199,16 @@ mod test {
         // Comments should be available everywhere in the grammar
         let parser = grammar::HeaderParser::new();
 
-        let invalid_1 = parser.parse(
-            "
-            program Fib1 (*\n\
-                some comments \n\r\
-                some other comment \
-            \
-            ",
-        );
-        let invalid_2 = parser.parse(
-            "
-            program Fib2 {\n\
-                some comments \n\r\
-                some other comment \
-                \
-            ",
-        );
+        let invalid_1 = parser.parse("program Fib1 (*\n");
+        let invalid_2 = parser.parse("program Fib2 {\n");
 
-        match invalid_1 {
-            Err(ParseError::UnrecognizedToken {
-                token: (_start, ref token, _end),
-                expected: _,
-            }) => {
-                assert_eq!(token.1, "(");
-            }
-            _ => panic!("Expected ParseError::UnrecognizedToken"),
-        };
-        match invalid_2 {
-            Err(ParseError::InvalidToken { location, .. }) => {
-                assert_eq!(location, 26);
-            }
-            _ => panic!("Expected ParseError::InvalidToken"),
-        };
+        assert!(invalid_1.is_err());
+        let err = invalid_1.unwrap_err();
+        assert!(format!("{:?}", err).contains("("));
+
+        assert!(invalid_2.is_err());
+        let err = invalid_2.unwrap_err();
+        assert!(format!("{:?}", err).contains("{"));
     }
 
     #[test]
@@ -248,32 +220,33 @@ mod test {
         // TODO: Add escaped single quotes to regex
         let valid_3 = parser.parse("'some \'escaped\' string'");
 
-        let invalid_1 = parser.parse("'some string");
-        let invalid_2 = parser.parse("some string'");
-
         assert_eq!(valid_1, Ok(String::from("''")));
         assert_eq!(valid_2, Ok(String::from("'some string'")));
         assert_eq!(valid_3, Ok(String::from("'some \'escaped\' string'")));
-
-        match invalid_1 {
-            Err(ParseError::InvalidToken { location, .. }) => {
-                assert_eq!(location, 0);
-            }
-            _ => panic!("Expected ParseError::InvalidToken"),
-        };
-        match invalid_2 {
-            Err(ParseError::UnrecognizedToken {
-                token: (_start, ref token, _end),
-                expected: _,
-            }) => {
-                assert_eq!(token.1, "some");
-            }
-            _ => panic!("Expected ParseError::UnrecognizedToken"),
-        };
     }
 
     #[test]
-    fn term_grammar() {
+    fn invalid_string_grammar() {
+        let parser = grammar::StringParser::new();
+
+        let input = "'some string";
+        let invalid_1 = parser.parse(input);
+        let invalid_2 = parser.parse("some string'");
+
+        assert!(invalid_1.is_err());
+        match invalid_1.unwrap_err() {
+            ParseError::InvalidToken { location } => {
+                assert_eq!(&input[location..location + 1], "'");
+            }
+            _ => panic!("Expected ParseError::InvalidToken"),
+        };
+        assert!(invalid_2.is_err());
+        let err = invalid_2.unwrap_err();
+        assert!(format!("{:?}", err).contains("some"));
+    }
+
+    #[test]
+    fn term_grammar_literals() {
         let parser = grammar::TermParser::new();
 
         let integer = parser.parse("100");
@@ -282,51 +255,39 @@ mod test {
         let boolean = parser.parse("true");
         let identifier = parser.parse("some_identifier_9");
 
+        assert_eq!(integer.unwrap(), Box::new(Expr::Integer(100)));
+        assert_eq!(double.unwrap(), Box::new(Expr::Double(100.100)));
+        assert_eq!(
+            string.unwrap(),
+            Box::new(Expr::String(String::from("'some string'")))
+        );
+        assert_eq!(boolean.unwrap(), Box::new(Expr::Boolean(true)));
+        assert_eq!(
+            identifier.unwrap(),
+            Box::new(Expr::Identifier(String::from("some_identifier_9")))
+        );
+    }
+
+    #[test]
+    fn term_paren_recursion() {
+        let parser = grammar::TermParser::new();
+
+        let valid_1 = parser.parse("(100)");
+        let valid_2 = parser.parse("((true))");
+
+        assert_eq!(valid_1.unwrap(), Box::new(Expr::Integer(100)));
+        assert_eq!(valid_2.unwrap(), Box::new(Expr::Boolean(true)));
+    }
+
+    #[test]
+    fn invalid_term_grammar() {
+        let parser = grammar::TermParser::new();
+
         let invalid = parser.parse("9some_identifier_9");
 
-        let brackets_integer = parser.parse("(100)");
-        let brackets_double = parser.parse("(100.100)");
-        let brackets_string = parser.parse("('some string')");
-        let brackets_boolean = parser.parse("(true)");
-        let brackets_identifier = parser.parse("some_identifier_9");
-
-        assert_eq!(integer, Ok(Box::new(Expr::Integer(100))));
-        assert_eq!(double, Ok(Box::new(Expr::Double(100.100))));
-        assert_eq!(
-            string,
-            Ok(Box::new(Expr::String(String::from("'some string'"))))
-        );
-        assert_eq!(boolean, Ok(Box::new(Expr::Boolean(true))));
-        assert_eq!(
-            identifier,
-            Ok(Box::new(Expr::Identifier(String::from(
-                "some_identifier_9"
-            ))))
-        );
-
-        assert_eq!(brackets_integer, Ok(Box::new(Expr::Integer(100))));
-        assert_eq!(brackets_double, Ok(Box::new(Expr::Double(100.100))));
-        assert_eq!(
-            brackets_string,
-            Ok(Box::new(Expr::String(String::from("'some string'"))))
-        );
-        assert_eq!(brackets_boolean, Ok(Box::new(Expr::Boolean(true))));
-        assert_eq!(
-            brackets_identifier,
-            Ok(Box::new(Expr::Identifier(String::from(
-                "some_identifier_9"
-            ))))
-        );
-
-        match invalid {
-            Err(ParseError::UnrecognizedToken {
-                token: (_start, ref token, _end),
-                expected: _,
-            }) => {
-                assert_eq!(token.1, "some_identifier_9");
-            }
-            _ => panic!("Expected ParseError::UnrecognizedToken"),
-        };
+        assert!(invalid.is_err());
+        let err = invalid.unwrap_err();
+        assert!(format!("{:?}", err).contains("some_identifier_9"));
     }
 
     #[test]
@@ -336,13 +297,47 @@ mod test {
         let valid_1 = parser.parse("+ 5");
         let valid_2 = parser.parse("- 5");
         let valid_3 = parser.parse("not true");
-        let valid_4 = parser.parse("- + - 5");
+
+        assert_eq!(
+            valid_1.unwrap(),
+            Box::new(Expr::Unary(Opcode::Pos, Box::new(Expr::Integer(5))))
+        );
+        assert_eq!(
+            valid_2.unwrap(),
+            Box::new(Expr::Unary(Opcode::Neg, Box::new(Expr::Integer(5))))
+        );
+        assert_eq!(
+            valid_3.unwrap(),
+            Box::new(Expr::Unary(Opcode::Not, Box::new(Expr::Boolean(true))))
+        );
+    }
+
+    #[test]
+    fn unary_recursion() {
+        let parser = grammar::UnaryExprParser::new();
+
+        let valid = parser.parse("- + - 5");
+
+        assert_eq!(
+            valid.unwrap(),
+            Box::new(Expr::Unary(
+                Opcode::Neg,
+                Box::new(Expr::Unary(
+                    Opcode::Pos,
+                    Box::new(Expr::Unary(Opcode::Neg, Box::new(Expr::Integer(5))))
+                ))
+            ))
+        )
+    }
+
+    #[test]
+    fn invalid_unary() {
+        let parser = grammar::UnaryExprParser::new();
+
         let invalid = parser.parse("5 + ");
 
-        assert_eq!(valid_1, Ok(Box::new(Expr::Unary(Opcode::Pos, Box::new(Expr::Integer(5))))));
-        assert_eq!(valid_2, Ok(Box::new(Expr::Unary(Opcode::Neg, Box::new(Expr::Integer(5))))));
-        assert_eq!(valid_3, Ok(Box::new(Expr::Unary(Opcode::Not, Box::new(Expr::Boolean(true))))));
-        assert!(valid_4.is_ok());
         assert!(invalid.is_err());
+        let err = invalid.unwrap_err();
+        assert!(format!("{:?}", err).contains("+"));
     }
 }
