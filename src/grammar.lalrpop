@@ -13,34 +13,29 @@ pub Header: Header = {
     "program" <Id> => Header::Identifier(<>.to_string()),
 };
 
-pub Expr: Box<Expr> = {
-    AddExpr RelOp AddExpr => Box::new(Expr::Binary(<>)),
-    AddExpr,
+
+Tier<Op, NextTier>: Box<Expr> = {
+    Tier<Op, NextTier> Op NextTier => Box::new(Expr::Binary(<>)),
+    NextTier,
 };
 
-RelOp: BinaryOp = {
+pub Expr: Box<Expr> = Tier<CmpOp, AddExpr>;
+AddExpr: Box<Expr> = Tier<AddOp, MulExpr>;
+MulExpr: Box<Expr> = Tier<MulOp, UnaryExpr>;
+
+CmpOp: BinaryOp = {
     "=" => BinaryOp::Eq,
     "<" => BinaryOp::Lt,
     ">" => BinaryOp::Gt,
     "<=" => BinaryOp::Le,
     ">=" => BinaryOp::Ge,
     "<>" => BinaryOp::Neq,
-}
-
-AddExpr: Box<Expr> = {
-    AddExpr AddOp MulExpr => Box::new(Expr::Binary(<>)),
-    MulExpr,
-}
+};
 
 AddOp: BinaryOp = {
     "+" => BinaryOp::Add,
     "-" => BinaryOp::Sub,
     "or" => BinaryOp::Or,
-};
-
-MulExpr: Box<Expr> = {
-    MulExpr MulOp UnaryExpr => Box::new(Expr::Binary(<>)),
-    UnaryExpr,
 };
 
 MulOp: BinaryOp= {
@@ -72,7 +67,7 @@ Literal: Literal = {
     Double => Literal::Double(<>),
     String => Literal::String(<>),
     Boolean => Literal::Boolean(<>),
-}
+};
 
 Integer: i32 = {
     r"[0-9]+" =>? i32::from_str(<>)
