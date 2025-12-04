@@ -90,7 +90,7 @@ fn usage_tip() {
 
 #[cfg(test)]
 mod test {
-    use crate::ast::{Expr, Header, Opcode};
+    use crate::ast::{Expr, Header, BinaryOp, UnaryOp};
     use lalrpop_util::ParseError;
 
     use super::*;
@@ -300,15 +300,15 @@ mod test {
 
         assert_eq!(
             valid_1.unwrap(),
-            Box::new(Expr::Unary(Opcode::Pos, Box::new(Expr::Integer(5))))
+            Box::new(Expr::Unary(UnaryOp::Pos, Box::new(Expr::Integer(5))))
         );
         assert_eq!(
             valid_2.unwrap(),
-            Box::new(Expr::Unary(Opcode::Neg, Box::new(Expr::Integer(5))))
+            Box::new(Expr::Unary(UnaryOp::Neg, Box::new(Expr::Integer(5))))
         );
         assert_eq!(
             valid_3.unwrap(),
-            Box::new(Expr::Unary(Opcode::Not, Box::new(Expr::Boolean(true))))
+            Box::new(Expr::Unary(UnaryOp::Not, Box::new(Expr::Boolean(true))))
         );
     }
 
@@ -321,10 +321,10 @@ mod test {
         assert_eq!(
             valid.unwrap(),
             Box::new(Expr::Unary(
-                Opcode::Neg,
+                UnaryOp::Neg,
                 Box::new(Expr::Unary(
-                    Opcode::Pos,
-                    Box::new(Expr::Unary(Opcode::Neg, Box::new(Expr::Integer(5))))
+                    UnaryOp::Pos,
+                    Box::new(Expr::Unary(UnaryOp::Neg, Box::new(Expr::Integer(5))))
                 ))
             ))
         )

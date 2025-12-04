@@ -15,12 +15,12 @@ pub enum Expr {
     String(String),
     Boolean(bool),
     Identifier(String),
-    Op(Box<Expr>, Opcode, Box<Expr>),
-    Unary(Opcode, Box<Expr>),
+    Binary(Box<Expr>, BinaryOp, Box<Expr>),
+    Unary(UnaryOp, Box<Expr>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Opcode {
+pub enum BinaryOp {
     Mul,
     Div,
     Mod,
@@ -36,6 +36,10 @@ pub enum Opcode {
 
     And,
     Or,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum UnaryOp {
     Not,
     Pos,
     Neg,
