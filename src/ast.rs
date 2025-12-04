@@ -49,3 +49,10 @@ pub enum UnaryOp {
     Pos,
     Neg,
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct VariableDeclaration {
+    pub identifier: String,
+    pub t: String,
+    pub expr: Option<Box<Expr>>,
+}

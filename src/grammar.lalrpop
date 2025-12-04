@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Program, Header, Expr, Literal, BinaryOp, UnaryOp};
+use crate::ast::{Program, Header, Expr, Literal, BinaryOp, UnaryOp, VariableDeclaration};
 
 use lalrpop_util::ParseError;
 
@@ -90,10 +90,22 @@ pub String: String = {
 Boolean: bool = {
     "true" => true,
     "false" => false,
-}
+};
 
 Identifier: String = {
     Id => <>.to_string(),
+};
+
+VariableDeclaration: VariableDeclaration = {
+    <i: Id> ":" <t: Type> => VariableDeclaration{ identifier: i.to_string(), t: t, expr: None },
+    <i: Id> ":" <t: Type> "=" <e: Expr> => VariableDeclaration{ identifier: i.to_string(), t: t, expr: Some(e) },
+};
+
+Type: String = {
+    "integer" => <>.to_string(),
+    "double" => <>.to_string(),
+    "boolean" => <>.to_string(),
+    "string" => <>.to_string(),
 };
 
 match {
@@ -110,7 +122,9 @@ match {
     "and", "or", "not",
 
     "(", ")",
+    ":",
     "true", "false",
+    "integer", "double", "boolean", "string",
 
     // Skip
     r"\s*" => { }, // Whitespace
