@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Program, Header, Expr, Literal, BinaryOp, UnaryOp, VariableDeclaration};
+use crate::ast::{Program, Header, Expr, Literal, BinaryOp, UnaryOp, VariableDeclaration, Type};
 
 use lalrpop_util::ParseError;
 
@@ -12,7 +12,6 @@ pub Program: Box<Program> = {
 pub Header: Header = {
     "program" <Id> => Header::Identifier(<>.to_string()),
 };
-
 
 Tier<Op, NextTier>: Box<Expr> = {
     Tier<Op, NextTier> Op NextTier => Box::new(Expr::Binary(<>)),
@@ -96,17 +95,17 @@ Identifier: String = {
     Id => <>.to_string(),
 };
 
-VariableDeclaration: VariableDeclaration = {
-    <i: Id> ":" <t: Type> <e: ("=" <Expr>)?> => {
-        VariableDeclaration{ identifier: i.to_string(), t: t, expr: e }
+pub VariableDeclaration: VariableDeclaration = {
+    <i: Id> ":" <t: Type> <e: ("=" <Expr>)?> ";" => {
+        VariableDeclaration{ identifier: i.to_string(), typ: t, expr: e }
     },
 };
 
-Type: String = {
-    "integer" => <>.to_string(),
-    "double" => <>.to_string(),
-    "boolean" => <>.to_string(),
-    "string" => <>.to_string(),
+Type: Type = {
+    "integer" => Type::Integer,
+    "double" => Type::Double,
+    "boolean" => Type::Boolean,
+    "string" => Type::String,
 };
 
 match {
@@ -123,7 +122,7 @@ match {
     "and", "or", "not",
 
     "(", ")",
-    ":",
+    ":", ";",
     "true", "false",
     "integer", "double", "boolean", "string",
 

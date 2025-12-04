@@ -31,22 +31,7 @@ fn main() {
         process::exit(1);
     });
 
-    println!(
-        "{:?}",
-        grammar::ProgramParser::new().parse(
-            "
-            program something \n\
-            // something
-            (* something else *)
-            (* 
-                something else 
-            *)
-            { 
-                something else 
-            }
-            "
-        )
-    );
+    println!("{:?}", grammar::ProgramParser::new().parse(&file_content));
 }
 
 fn has_pas_extension(path: &Path) -> bool {
@@ -141,7 +126,7 @@ mod test {
 
 #[cfg(test)]
 mod test_grammar {
-    use crate::ast::{BinaryOp, Expr, Header, Literal, UnaryOp};
+    use crate::ast::{BinaryOp, Expr, Header, Literal, Type, UnaryOp, VariableDeclaration};
     use lalrpop_util::ParseError;
 
     use super::*;
@@ -491,6 +476,31 @@ mod test_grammar {
                     Box::new(Expr::Literal(Literal::Integer(4)))
                 ))
             ))
+        );
+    }
+
+    #[test]
+    fn variable_declaration() {
+        let parser = grammar::VariableDeclarationParser::new();
+
+        let var_decl = parser.parse("some_name : integer;");
+        let var_decl_init = parser.parse("some_name : boolean = true;");
+
+        assert_eq!(
+            var_decl.unwrap(),
+            VariableDeclaration {
+                identifier: "some_name".to_string(),
+                typ: Type::Integer,
+                expr: None,
+            }
+        );
+        assert_eq!(
+            var_decl_init.unwrap(),
+            VariableDeclaration {
+                identifier: "some_name".to_string(),
+                typ: Type::Boolean,
+                expr: Some(Box::new(Expr::Literal(Literal::Boolean(true)))),
+            }
         );
     }
 }

@@ -53,6 +53,14 @@ pub enum UnaryOp {
 #[derive(Debug, Clone, PartialEq)]
 pub struct VariableDeclaration {
     pub identifier: String,
-    pub t: String,
+    pub typ: Type,
     pub expr: Option<Box<Expr>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Type {
+    Integer,
+    Double,
+    Boolean,
+    String,
 }
