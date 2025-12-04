@@ -126,7 +126,9 @@ mod test {
 
 #[cfg(test)]
 mod test_grammar {
-    use crate::ast::{BinaryOp, Expr, Header, Literal, Type, UnaryOp, VariableDeclaration};
+    use crate::ast::{
+        BinaryOp, Expr, Header, Literal, Type, UnaryOp, VariableAssignment, VariableDeclaration,
+    };
     use lalrpop_util::ParseError;
 
     use super::*;
@@ -500,6 +502,21 @@ mod test_grammar {
                 identifier: "some_name".to_string(),
                 typ: Type::Boolean,
                 expr: Some(Box::new(Expr::Literal(Literal::Boolean(true)))),
+            }
+        );
+    }
+
+    #[test]
+    fn variable_assignment() {
+        let parser = grammar::VariableAssignmentParser::new();
+
+        let var_assign = parser.parse("some_name := 1;");
+
+        assert_eq!(
+            var_assign.unwrap(),
+            VariableAssignment {
+                identifier: "some_name".to_string(),
+                expr: Box::new(Expr::Literal(Literal::Integer(1))),
             }
         );
     }

@@ -64,3 +64,9 @@ pub enum Type {
     Boolean,
     String,
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct VariableAssignment {
+    pub identifier: String,
+    pub expr: Box<Expr>,
+}
