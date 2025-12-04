@@ -97,8 +97,9 @@ Identifier: String = {
 };
 
 VariableDeclaration: VariableDeclaration = {
-    <i: Id> ":" <t: Type> => VariableDeclaration{ identifier: i.to_string(), t: t, expr: None },
-    <i: Id> ":" <t: Type> "=" <e: Expr> => VariableDeclaration{ identifier: i.to_string(), t: t, expr: Some(e) },
+    <i: Id> ":" <t: Type> <e: ("=" <Expr>)?> => {
+        VariableDeclaration{ identifier: i.to_string(), t: t, expr: e }
+    },
 };
 
 Type: String = {
