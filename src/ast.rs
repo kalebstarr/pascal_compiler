@@ -9,11 +9,16 @@ pub enum Header {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Expr {
+pub enum Literal {
     Integer(i32),
     Double(f64),
     String(String),
     Boolean(bool),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Expr {
+    Literal(Literal),
     Identifier(String),
     Binary(Box<Expr>, BinaryOp, Box<Expr>),
     Unary(UnaryOp, Box<Expr>),

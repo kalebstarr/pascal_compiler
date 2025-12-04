@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Program, Header, Expr, BinaryOp, UnaryOp};
+use crate::ast::{Program, Header, Expr, Literal, BinaryOp, UnaryOp};
 
 use lalrpop_util::ParseError;
 
@@ -62,13 +62,17 @@ UnaryOp: UnaryOp = {
 };
 
 pub Term: Box<Expr> = {
-    Integer => Box::new(Expr::Integer(<>)),
-    Double => Box::new(Expr::Double(<>)),
-    String => Box::new(Expr::String(<>)),
-    Boolean => Box::new(Expr::Boolean(<>)),
+    Literal => Box::new(Expr::Literal(<>)),
     Identifier => Box::new(Expr::Identifier(<>)),
     "(" <Expr> ")",
 };
+
+Literal: Literal = {
+    Integer => Literal::Integer(<>),
+    Double => Literal::Double(<>),
+    String => Literal::String(<>),
+    Boolean => Literal::Boolean(<>),
+}
 
 Integer: i32 = {
     r"[0-9]+" =>? i32::from_str(<>)

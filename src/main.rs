@@ -90,7 +90,7 @@ fn usage_tip() {
 
 #[cfg(test)]
 mod test {
-    use crate::ast::{Expr, Header, BinaryOp, UnaryOp};
+    use crate::ast::{BinaryOp, Expr, Header, Literal, UnaryOp};
     use lalrpop_util::ParseError;
 
     use super::*;
@@ -255,13 +255,24 @@ mod test {
         let boolean = parser.parse("true");
         let identifier = parser.parse("some_identifier_9");
 
-        assert_eq!(integer.unwrap(), Box::new(Expr::Integer(100)));
-        assert_eq!(double.unwrap(), Box::new(Expr::Double(100.100)));
+        assert_eq!(
+            integer.unwrap(),
+            Box::new(Expr::Literal(Literal::Integer(100)))
+        );
+        assert_eq!(
+            double.unwrap(),
+            Box::new(Expr::Literal(Literal::Double(100.100)))
+        );
         assert_eq!(
             string.unwrap(),
-            Box::new(Expr::String(String::from("'some string'")))
+            Box::new(Expr::Literal(Literal::String(String::from(
+                "'some string'"
+            ))))
         );
-        assert_eq!(boolean.unwrap(), Box::new(Expr::Boolean(true)));
+        assert_eq!(
+            boolean.unwrap(),
+            Box::new(Expr::Literal(Literal::Boolean(true)))
+        );
         assert_eq!(
             identifier.unwrap(),
             Box::new(Expr::Identifier(String::from("some_identifier_9")))
@@ -275,8 +286,14 @@ mod test {
         let valid_1 = parser.parse("(100)");
         let valid_2 = parser.parse("((true))");
 
-        assert_eq!(valid_1.unwrap(), Box::new(Expr::Integer(100)));
-        assert_eq!(valid_2.unwrap(), Box::new(Expr::Boolean(true)));
+        assert_eq!(
+            valid_1.unwrap(),
+            Box::new(Expr::Literal(Literal::Integer(100)))
+        );
+        assert_eq!(
+            valid_2.unwrap(),
+            Box::new(Expr::Literal(Literal::Boolean(true)))
+        );
     }
 
     #[test]
@@ -300,15 +317,24 @@ mod test {
 
         assert_eq!(
             valid_1.unwrap(),
-            Box::new(Expr::Unary(UnaryOp::Pos, Box::new(Expr::Integer(5))))
+            Box::new(Expr::Unary(
+                UnaryOp::Pos,
+                Box::new(Expr::Literal(Literal::Integer(5)))
+            ))
         );
         assert_eq!(
             valid_2.unwrap(),
-            Box::new(Expr::Unary(UnaryOp::Neg, Box::new(Expr::Integer(5))))
+            Box::new(Expr::Unary(
+                UnaryOp::Neg,
+                Box::new(Expr::Literal(Literal::Integer(5)))
+            ))
         );
         assert_eq!(
             valid_3.unwrap(),
-            Box::new(Expr::Unary(UnaryOp::Not, Box::new(Expr::Boolean(true))))
+            Box::new(Expr::Unary(
+                UnaryOp::Not,
+                Box::new(Expr::Literal(Literal::Boolean(true)))
+            ))
         );
     }
 
@@ -324,7 +350,10 @@ mod test {
                 UnaryOp::Neg,
                 Box::new(Expr::Unary(
                     UnaryOp::Pos,
-                    Box::new(Expr::Unary(UnaryOp::Neg, Box::new(Expr::Integer(5))))
+                    Box::new(Expr::Unary(
+                        UnaryOp::Neg,
+                        Box::new(Expr::Literal(Literal::Integer(5)))
+                    ))
                 ))
             ))
         )
