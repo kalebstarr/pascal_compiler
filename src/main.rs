@@ -90,9 +90,6 @@ fn usage_tip() {
 
 #[cfg(test)]
 mod test {
-    use crate::ast::{BinaryOp, Expr, Header, Literal, UnaryOp};
-    use lalrpop_util::ParseError;
-
     use super::*;
 
     #[test]
@@ -140,9 +137,17 @@ mod test {
         assert!(!has_pas_extension(&path));
         assert!(!has_pas_extension(&path2));
     }
+}
+
+#[cfg(test)]
+mod test_grammar {
+    use crate::ast::{BinaryOp, Expr, Header, Literal, UnaryOp};
+    use lalrpop_util::ParseError;
+
+    use super::*;
 
     #[test]
-    fn header_grammar() {
+    fn header_() {
         let parser = grammar::HeaderParser::new();
 
         assert_eq!(
@@ -152,7 +157,7 @@ mod test {
     }
 
     #[test]
-    fn invalid_header_grammar() {
+    fn invalid_header() {
         let parser = grammar::HeaderParser::new();
 
         let result = parser.parse("program program");
@@ -212,7 +217,7 @@ mod test {
     }
 
     #[test]
-    fn string_grammar() {
+    fn string() {
         let parser = grammar::StringParser::new();
 
         let valid_1 = parser.parse("''");
@@ -226,7 +231,7 @@ mod test {
     }
 
     #[test]
-    fn invalid_string_grammar() {
+    fn invalid_string() {
         let parser = grammar::StringParser::new();
 
         let input = "'some string";
@@ -297,7 +302,7 @@ mod test {
     }
 
     #[test]
-    fn invalid_term_grammar() {
+    fn invalid_term() {
         let parser = grammar::TermParser::new();
 
         let invalid = parser.parse("9some_identifier_9");
@@ -308,7 +313,7 @@ mod test {
     }
 
     #[test]
-    fn unary_grammar() {
+    fn unary() {
         let parser = grammar::UnaryExprParser::new();
 
         let valid_1 = parser.parse("+ 5");
