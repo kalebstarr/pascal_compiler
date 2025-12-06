@@ -66,6 +66,11 @@ pub enum Type {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum Statement {
+    VariableAssignment(VariableAssignment),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct VariableAssignment {
     pub identifier: String,
     pub expr: Box<Expr>,

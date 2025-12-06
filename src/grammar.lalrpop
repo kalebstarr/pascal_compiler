@@ -1,6 +1,6 @@
 use std::str::FromStr;
 use crate::ast::{
-    BinaryOp, Expr, Header, Literal, Program, Type, UnaryOp, VariableAssignment,
+    BinaryOp, Expr, Header, Literal, Program, Statement, Type, UnaryOp, VariableAssignment,
     VariableDeclaration,
 };
 
@@ -110,6 +110,10 @@ Type: Type = {
     "boolean" => Type::Boolean,
     "string" => Type::String,
 };
+
+Statement: Statement = {
+    VariableAssignment => Statement::VariableAssignment(<>),
+}
 
 pub VariableAssignment: VariableAssignment = {
     <i: Id> ":=" <e: Expr> ";" => {
