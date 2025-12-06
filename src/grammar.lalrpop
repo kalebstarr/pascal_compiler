@@ -116,13 +116,17 @@ Statement: Statement = {
 };
 
 pub VariableAssignment: VariableAssignment = {
-    <i: Id> ":=" <e: Expr> ";" => {
+    <i: Id> ":=" <e: Expr> => {
         VariableAssignment{ identifier: i.to_string(), expr: e }
     },
 };
 
-Block: Vec<Statement> = {
-    "begin" <Statement*> "end",
+pub Block: Vec<Statement> = {
+    "begin" <mut v: (<Statement> ";")*> <e: Statement> (";")? "end" => {
+        v.push(e);
+        v
+    },
+    <Statement> (";")? => vec![<>],
 };
 
 match {

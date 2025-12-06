@@ -127,7 +127,8 @@ mod test {
 #[cfg(test)]
 mod test_grammar {
     use crate::ast::{
-        BinaryOp, Expr, Header, Literal, Type, UnaryOp, VariableAssignment, VariableDeclaration,
+        BinaryOp, Expr, Header, Literal, Statement, Type, UnaryOp, VariableAssignment,
+        VariableDeclaration,
     };
     use lalrpop_util::ParseError;
 
@@ -510,7 +511,7 @@ mod test_grammar {
     fn variable_assignment() {
         let parser = grammar::VariableAssignmentParser::new();
 
-        let var_assign = parser.parse("some_name := 1;");
+        let var_assign = parser.parse("some_name := 1");
 
         assert_eq!(
             var_assign.unwrap(),
@@ -519,5 +520,51 @@ mod test_grammar {
                 expr: Box::new(Expr::Literal(Literal::Integer(1))),
             }
         );
+    }
+
+    #[test]
+    fn block_single_statement() {
+        let parser = grammar::BlockParser::new();
+
+        let no_semicolon = parser.parse("var_assign := 1");
+        let with_semicolon = parser.parse("var_assign := 1;");
+
+        let assignment = vec![Statement::VariableAssignment(VariableAssignment {
+            identifier: String::from("var_assign"),
+            expr: Box::new(Expr::Literal(Literal::Integer(1))),
+        })];
+        assert_eq!(no_semicolon.unwrap(), assignment);
+        assert_eq!(with_semicolon.unwrap(), assignment);
+    }
+
+    #[test]
+    fn block_multi_statement() {
+        let parser = grammar::BlockParser::new();
+
+        let no_semicolon = parser.parse(
+            "begin
+                var_assign_1 := 1;
+                var_assign_2 := 2
+            end",
+        );
+        let with_semicolon = parser.parse(
+            "begin
+                var_assign_1 := 1;
+                var_assign_2 := 2;
+            end",
+        );
+
+        let assignment = vec![
+            Statement::VariableAssignment(VariableAssignment {
+                identifier: String::from("var_assign_1"),
+                expr: Box::new(Expr::Literal(Literal::Integer(1))),
+            }),
+            Statement::VariableAssignment(VariableAssignment {
+                identifier: String::from("var_assign_2"),
+                expr: Box::new(Expr::Literal(Literal::Integer(2))),
+            }),
+        ];
+        assert_eq!(no_semicolon.unwrap(), assignment);
+        assert_eq!(with_semicolon.unwrap(), assignment);
     }
 }
