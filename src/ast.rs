@@ -68,6 +68,7 @@ pub enum Type {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
     VariableAssignment(VariableAssignment),
+    Block(Vec<Statement>),
 }
 
 #[derive(Debug, Clone, PartialEq)]

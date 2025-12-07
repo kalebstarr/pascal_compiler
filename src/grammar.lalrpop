@@ -113,6 +113,7 @@ Type: Type = {
 
 Statement: Statement = {
     VariableAssignment => Statement::VariableAssignment(<>),
+    Block => Statement::Block(<>),
 };
 
 pub VariableAssignment: VariableAssignment = {
