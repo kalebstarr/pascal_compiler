@@ -76,3 +76,10 @@ pub struct VariableAssignment {
     pub identifier: String,
     pub expr: Box<Expr>,
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct IfElse {
+    pub expr: Box<Expr>,
+    pub if_statement: Statement,
+    pub else_statement: Option<Statement>,
+}

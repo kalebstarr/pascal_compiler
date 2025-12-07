@@ -127,7 +127,7 @@ mod test {
 #[cfg(test)]
 mod test_grammar {
     use crate::ast::{
-        BinaryOp, Expr, Header, Literal, Statement, Type, UnaryOp, VariableAssignment,
+        BinaryOp, Expr, Header, IfElse, Literal, Statement, Type, UnaryOp, VariableAssignment,
         VariableDeclaration,
     };
     use lalrpop_util::ParseError;
@@ -562,13 +562,61 @@ mod test_grammar {
         assert_eq!(no_semicolon.unwrap(), assignment);
         assert_eq!(with_semicolon.unwrap(), assignment);
 
-        let single_assignment = vec![
-            Statement::VariableAssignment(VariableAssignment {
-                identifier: String::from("var_assign_1"),
-                expr: Box::new(Expr::Literal(Literal::Integer(1))),
-            }),
-        ];
+        let single_assignment = vec![Statement::VariableAssignment(VariableAssignment {
+            identifier: String::from("var_assign_1"),
+            expr: Box::new(Expr::Literal(Literal::Integer(1))),
+        })];
         assert_eq!(single_no_semicolon.unwrap(), single_assignment);
         assert_eq!(single_with_semicolon.unwrap(), single_assignment);
+    }
+
+    #[test]
+    fn if_else() {
+        let parser = grammar::IfElseParser::new();
+
+        let only_if = parser.parse(
+            "if ( 1 = 2 ) then
+                some_var := 1",
+        );
+        let if_else = parser.parse(
+            "if ( 1 = 2 ) then
+                some_var := 1
+            else
+                other_var := 2",
+        );
+
+        assert_eq!(
+            only_if.unwrap(),
+            IfElse {
+                expr: Box::new(Expr::Binary(
+                    Box::new(Expr::Literal(Literal::Integer(1))),
+                    BinaryOp::Eq,
+                    Box::new(Expr::Literal(Literal::Integer(2)))
+                )),
+                if_statement: Statement::VariableAssignment(VariableAssignment {
+                    identifier: String::from("some_var"),
+                    expr: Box::new(Expr::Literal(Literal::Integer(1)))
+                }),
+                else_statement: None,
+            }
+        );
+        assert_eq!(
+            if_else.unwrap(),
+            IfElse {
+                expr: Box::new(Expr::Binary(
+                    Box::new(Expr::Literal(Literal::Integer(1))),
+                    BinaryOp::Eq,
+                    Box::new(Expr::Literal(Literal::Integer(2)))
+                )),
+                if_statement: Statement::VariableAssignment(VariableAssignment {
+                    identifier: String::from("some_var"),
+                    expr: Box::new(Expr::Literal(Literal::Integer(1)))
+                }),
+                else_statement: Some(Statement::VariableAssignment(VariableAssignment {
+                    identifier: String::from("other_var"),
+                    expr: Box::new(Expr::Literal(Literal::Integer(2)))
+                })),
+            }
+        );
     }
 }

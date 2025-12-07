@@ -1,6 +1,6 @@
 use std::str::FromStr;
 use crate::ast::{
-    BinaryOp, Expr, Header, Literal, Program, Statement, Type, UnaryOp, VariableAssignment,
+    BinaryOp, Expr, Header, IfElse, Literal, Program, Statement, Type, UnaryOp, VariableAssignment,
     VariableDeclaration,
 };
 
@@ -129,6 +129,12 @@ pub Block: Vec<Statement> = {
     },
 };
 
+pub IfElse: IfElse = {
+    "if" "(" <expr: Expr> ")" "then" <i: Statement> <e: ("else" <Statement>)?> => {
+        IfElse{ expr: expr, if_statement: i, else_statement: e }
+    },
+};
+
 match {
     // String match
     "program",
@@ -140,6 +146,7 @@ match {
     "=", "<", ">", "<=", ">=", "<>",
     // Boolean
     "and", "or", "not",
+    "if", "then", "else",
 
     "(", ")",
     ":", ";", ":=",
