@@ -126,7 +126,6 @@ pub Block: Vec<Statement> = {
         v.push(e);
         v
     },
-    <Statement> (";")? => vec![<>],
 };
 
 match {

@@ -523,21 +523,6 @@ mod test_grammar {
     }
 
     #[test]
-    fn block_single_statement() {
-        let parser = grammar::BlockParser::new();
-
-        let no_semicolon = parser.parse("var_assign := 1");
-        let with_semicolon = parser.parse("var_assign := 1;");
-
-        let assignment = vec![Statement::VariableAssignment(VariableAssignment {
-            identifier: String::from("var_assign"),
-            expr: Box::new(Expr::Literal(Literal::Integer(1))),
-        })];
-        assert_eq!(no_semicolon.unwrap(), assignment);
-        assert_eq!(with_semicolon.unwrap(), assignment);
-    }
-
-    #[test]
     fn block_multi_statement() {
         let parser = grammar::BlockParser::new();
 
@@ -553,6 +538,16 @@ mod test_grammar {
                 var_assign_2 := 2;
             end",
         );
+        let single_no_semicolon = parser.parse(
+            "begin
+                var_assign_1 := 1
+            end",
+        );
+        let single_with_semicolon = parser.parse(
+            "begin
+                var_assign_1 := 1;
+            end",
+        );
 
         let assignment = vec![
             Statement::VariableAssignment(VariableAssignment {
@@ -566,5 +561,14 @@ mod test_grammar {
         ];
         assert_eq!(no_semicolon.unwrap(), assignment);
         assert_eq!(with_semicolon.unwrap(), assignment);
+
+        let single_assignment = vec![
+            Statement::VariableAssignment(VariableAssignment {
+                identifier: String::from("var_assign_1"),
+                expr: Box::new(Expr::Literal(Literal::Integer(1))),
+            }),
+        ];
+        assert_eq!(single_no_semicolon.unwrap(), single_assignment);
+        assert_eq!(single_with_semicolon.unwrap(), single_assignment);
     }
 }
