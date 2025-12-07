@@ -69,6 +69,7 @@ pub enum Type {
 pub enum Statement {
     VariableAssignment(VariableAssignment),
     Block(Vec<Statement>),
+    IfElse(IfElse),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -80,6 +81,6 @@ pub struct VariableAssignment {
 #[derive(Debug, Clone, PartialEq)]
 pub struct IfElse {
     pub expr: Box<Expr>,
-    pub if_statement: Statement,
-    pub else_statement: Option<Statement>,
+    pub if_statement: Box<Statement>,
+    pub else_statement: Option<Box<Statement>>,
 }

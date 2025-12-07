@@ -112,8 +112,45 @@ Type: Type = {
 };
 
 Statement: Statement = {
+    MatchedStatement,
+    UnmatchedStatement,
+};
+
+pub MatchedStatement: Statement = {
     VariableAssignment => Statement::VariableAssignment(<>),
     Block => Statement::Block(<>),
+    MatchedIf => Statement::IfElse(<>),
+};
+
+pub MatchedIf: IfElse = {
+    "if" "(" <expr: Expr> ")" "then" <i: MatchedStatement> "else" <e: MatchedStatement> => {
+        IfElse{ 
+            expr: expr, 
+            if_statement: Box::new(i), 
+            else_statement: Some(Box::new(e)), 
+        }
+    },
+};
+
+UnmatchedStatement: Statement = {
+    UnmatchedIf => Statement::IfElse(<>),
+};
+
+pub UnmatchedIf: IfElse = {
+    "if" "(" <expr: Expr> ")" "then" <i: Statement> => {
+        IfElse{ 
+            expr: expr, 
+            if_statement: Box::new(i), 
+            else_statement: None, 
+        }
+    },
+    "if" "(" <expr: Expr> ")" "then" <i: MatchedStatement> "else" <e: UnmatchedStatement> => {
+        IfElse{ 
+            expr: expr, 
+            if_statement: Box::new(i), 
+            else_statement: Some(Box::new(e)), 
+        }
+    },
 };
 
 pub VariableAssignment: VariableAssignment = {
@@ -126,12 +163,6 @@ pub Block: Vec<Statement> = {
     "begin" <mut v: (<Statement> ";")*> <e: Statement> (";")? "end" => {
         v.push(e);
         v
-    },
-};
-
-pub IfElse: IfElse = {
-    "if" "(" <expr: Expr> ")" "then" <i: Statement> <e: ("else" <Statement>)?> => {
-        IfElse{ expr: expr, if_statement: i, else_statement: e }
     },
 };
 

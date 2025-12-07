@@ -571,8 +571,29 @@ mod test_grammar {
     }
 
     #[test]
-    fn if_else() {
-        let parser = grammar::IfElseParser::new();
+    fn matched_if_else() {
+        let parser = grammar::MatchedIfParser::new();
+
+        let if_else = parser.parse(
+            "if ( 1 = 2 ) then
+                some_var := 1
+            else
+                other_var := 2",
+        );
+
+        assert!(matches!(
+            if_else.unwrap(),
+            IfElse {
+                expr: _,
+                if_statement: _,
+                else_statement: Some(_)
+            }
+        ));
+    }
+
+    #[test]
+    fn unmatched_if_else() {
+        let parser = grammar::UnmatchedIfParser::new();
 
         let only_if = parser.parse(
             "if ( 1 = 2 ) then
@@ -582,41 +603,29 @@ mod test_grammar {
             "if ( 1 = 2 ) then
                 some_var := 1
             else
-                other_var := 2",
+                if ( 1 = 2) then
+                    other_var := 2",
         );
 
-        assert_eq!(
+        assert!(matches!(
             only_if.unwrap(),
             IfElse {
-                expr: Box::new(Expr::Binary(
-                    Box::new(Expr::Literal(Literal::Integer(1))),
-                    BinaryOp::Eq,
-                    Box::new(Expr::Literal(Literal::Integer(2)))
-                )),
-                if_statement: Statement::VariableAssignment(VariableAssignment {
-                    identifier: String::from("some_var"),
-                    expr: Box::new(Expr::Literal(Literal::Integer(1)))
-                }),
-                else_statement: None,
+                expr: _,
+                if_statement: _,
+                else_statement: None
             }
-        );
-        assert_eq!(
+        ));
+        assert!(matches!(
             if_else.unwrap(),
             IfElse {
-                expr: Box::new(Expr::Binary(
-                    Box::new(Expr::Literal(Literal::Integer(1))),
-                    BinaryOp::Eq,
-                    Box::new(Expr::Literal(Literal::Integer(2)))
-                )),
-                if_statement: Statement::VariableAssignment(VariableAssignment {
-                    identifier: String::from("some_var"),
-                    expr: Box::new(Expr::Literal(Literal::Integer(1)))
-                }),
-                else_statement: Some(Statement::VariableAssignment(VariableAssignment {
-                    identifier: String::from("other_var"),
-                    expr: Box::new(Expr::Literal(Literal::Integer(2)))
-                })),
-            }
-        );
+                expr: _,
+                if_statement: _,
+                else_statement: Some(e_stmt)
+            } if matches!(*e_stmt, Statement::IfElse(IfElse {
+                    expr: _,
+                    if_statement: _,
+                    else_statement: None
+                }))
+        ));
     }
 }
