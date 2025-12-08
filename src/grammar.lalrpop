@@ -71,15 +71,16 @@ pub UnmatchedIf: IfElse = {
     },
 };
 
-pub MatchedWhile: While = {
-    "while" "(" <e: Expr> ")" "do" <s: MatchedStatement> => {
+While<StatementType>: While = {
+    "while" "(" <e: Expr> ")" "do" <s: StatementType> => {
         While{ expr: e, statement: Box::new(s) }
     },
 };
+pub MatchedWhile: While = {
+    While<MatchedStatement>,
+};
 pub UnmatchedWhile: While = {
-    "while" "(" <e: Expr> ")" "do" <s: UnmatchedStatement> => {
-        While{ expr: e, statement: Box::new(s) }
-    },
+    While<UnmatchedStatement>,
 };
 
 pub VariableAssignment: VariableAssignment = {
