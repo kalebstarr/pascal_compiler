@@ -16,6 +16,85 @@ pub Header: Header = {
     "program" <Id> => Header::Identifier(<>.to_string()),
 };
 
+pub VariableDeclaration: VariableDeclaration = {
+    <i: Id> ":" <t: Type> <e: ("=" <Expr>)?> ";" => {
+        VariableDeclaration{ identifier: i.to_string(), typ: t, expr: e }
+    },
+};
+
+Type: Type = {
+    "integer" => Type::Integer,
+    "double" => Type::Double,
+    "boolean" => Type::Boolean,
+    "string" => Type::String,
+};
+
+Statement: Statement = {
+    MatchedStatement,
+    UnmatchedStatement,
+};
+
+pub MatchedStatement: Statement = {
+    VariableAssignment => Statement::VariableAssignment(<>),
+    Block => Statement::Block(<>),
+    MatchedIf => Statement::IfElse(<>),
+    MatchedWhile => Statement::While(<>),
+};
+pub UnmatchedStatement: Statement = {
+    UnmatchedIf => Statement::IfElse(<>),
+    UnmatchedWhile => Statement::While(<>),
+};
+
+pub MatchedIf: IfElse = {
+    "if" "(" <expr: Expr> ")" "then" <i: MatchedStatement> "else" <e: MatchedStatement> => {
+        IfElse{ 
+            expr: expr, 
+            if_statement: Box::new(i), 
+            else_statement: Some(Box::new(e)), 
+        }
+    },
+};
+pub UnmatchedIf: IfElse = {
+    "if" "(" <expr: Expr> ")" "then" <i: Statement> => {
+        IfElse{ 
+            expr: expr, 
+            if_statement: Box::new(i), 
+            else_statement: None, 
+        }
+    },
+    "if" "(" <expr: Expr> ")" "then" <i: MatchedStatement> "else" <e: UnmatchedStatement> => {
+        IfElse{ 
+            expr: expr, 
+            if_statement: Box::new(i), 
+            else_statement: Some(Box::new(e)), 
+        }
+    },
+};
+
+pub MatchedWhile: While = {
+    "while" "(" <e: Expr> ")" "do" <s: MatchedStatement> => {
+        While{ expr: e, statement: Box::new(s) }
+    },
+};
+pub UnmatchedWhile: While = {
+    "while" "(" <e: Expr> ")" "do" <s: UnmatchedStatement> => {
+        While{ expr: e, statement: Box::new(s) }
+    },
+};
+
+pub VariableAssignment: VariableAssignment = {
+    <i: Id> ":=" <e: Expr> => {
+        VariableAssignment{ identifier: i.to_string(), expr: e }
+    },
+};
+
+pub Block: Vec<Statement> = {
+    "begin" <mut v: (<Statement> ";")*> <e: Statement> (";")? "end" => {
+        v.push(e);
+        v
+    },
+};
+
 Tier<Op, NextTier>: Box<Expr> = {
     Tier<Op, NextTier> Op NextTier => Box::new(Expr::Binary(<>)),
     NextTier,
@@ -96,88 +175,6 @@ Boolean: bool = {
 
 Identifier: String = {
     Id => <>.to_string(),
-};
-
-pub VariableDeclaration: VariableDeclaration = {
-    <i: Id> ":" <t: Type> <e: ("=" <Expr>)?> ";" => {
-        VariableDeclaration{ identifier: i.to_string(), typ: t, expr: e }
-    },
-};
-
-Type: Type = {
-    "integer" => Type::Integer,
-    "double" => Type::Double,
-    "boolean" => Type::Boolean,
-    "string" => Type::String,
-};
-
-Statement: Statement = {
-    MatchedStatement,
-    UnmatchedStatement,
-};
-
-pub MatchedStatement: Statement = {
-    VariableAssignment => Statement::VariableAssignment(<>),
-    Block => Statement::Block(<>),
-    MatchedIf => Statement::IfElse(<>),
-    MatchedWhile => Statement::While(<>),
-};
-
-pub MatchedIf: IfElse = {
-    "if" "(" <expr: Expr> ")" "then" <i: MatchedStatement> "else" <e: MatchedStatement> => {
-        IfElse{ 
-            expr: expr, 
-            if_statement: Box::new(i), 
-            else_statement: Some(Box::new(e)), 
-        }
-    },
-};
-
-pub MatchedWhile: While = {
-    "while" "(" <e: Expr> ")" "do" <s: MatchedStatement> => {
-        While{ expr: e, statement: Box::new(s) }
-    },
-};
-
-UnmatchedStatement: Statement = {
-    UnmatchedIf => Statement::IfElse(<>),
-    UnmatchedWhile => Statement::While(<>),
-};
-
-pub UnmatchedIf: IfElse = {
-    "if" "(" <expr: Expr> ")" "then" <i: Statement> => {
-        IfElse{ 
-            expr: expr, 
-            if_statement: Box::new(i), 
-            else_statement: None, 
-        }
-    },
-    "if" "(" <expr: Expr> ")" "then" <i: MatchedStatement> "else" <e: UnmatchedStatement> => {
-        IfElse{ 
-            expr: expr, 
-            if_statement: Box::new(i), 
-            else_statement: Some(Box::new(e)), 
-        }
-    },
-};
-
-pub UnmatchedWhile: While = {
-    "while" "(" <e: Expr> ")" "do" <s: UnmatchedStatement> => {
-        While{ expr: e, statement: Box::new(s) }
-    },
-};
-
-pub VariableAssignment: VariableAssignment = {
-    <i: Id> ":=" <e: Expr> => {
-        VariableAssignment{ identifier: i.to_string(), expr: e }
-    },
-};
-
-pub Block: Vec<Statement> = {
-    "begin" <mut v: (<Statement> ";")*> <e: Statement> (";")? "end" => {
-        v.push(e);
-        v
-    },
 };
 
 match {
