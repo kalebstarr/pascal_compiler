@@ -120,6 +120,7 @@ pub MatchedStatement: Statement = {
     VariableAssignment => Statement::VariableAssignment(<>),
     Block => Statement::Block(<>),
     MatchedIf => Statement::IfElse(<>),
+    MatchedWhile => Statement::While(<>),
 };
 
 pub MatchedIf: IfElse = {
@@ -132,8 +133,15 @@ pub MatchedIf: IfElse = {
     },
 };
 
+pub MatchedWhile: While = {
+    "while" "(" <e: Expr> ")" "do" <s: MatchedStatement> => {
+        While{ expr: e, statement: Box::new(s) }
+    },
+};
+
 UnmatchedStatement: Statement = {
     UnmatchedIf => Statement::IfElse(<>),
+    UnmatchedWhile => Statement::While(<>),
 };
 
 pub UnmatchedIf: IfElse = {
@@ -153,6 +161,12 @@ pub UnmatchedIf: IfElse = {
     },
 };
 
+pub UnmatchedWhile: While = {
+    "while" "(" <e: Expr> ")" "do" <s: UnmatchedStatement> => {
+        While{ expr: e, statement: Box::new(s) }
+    },
+};
+
 pub VariableAssignment: VariableAssignment = {
     <i: Id> ":=" <e: Expr> => {
         VariableAssignment{ identifier: i.to_string(), expr: e }
@@ -163,12 +177,6 @@ pub Block: Vec<Statement> = {
     "begin" <mut v: (<Statement> ";")*> <e: Statement> (";")? "end" => {
         v.push(e);
         v
-    },
-};
-
-pub While: While = {
-    "while" "(" <e: Expr> ")" "do" <s: Statement> => {
-        While{ expr: e, statement: Box::new(s) }
     },
 };
 

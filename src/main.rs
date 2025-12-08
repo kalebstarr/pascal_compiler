@@ -631,15 +631,23 @@ mod test_grammar {
 
     #[test]
     fn while_loop() {
-        let parser = grammar::WhileParser::new();
+        let matched_parser = grammar::MatchedWhileParser::new();
+        let unmatched_parser = grammar::MatchedWhileParser::new();
 
-        let while_loop = parser.parse(
-            "while ( 1 = 2 ) do
-                some_var := 1",
-        );
+        let input = "while ( 1 = 2 ) do
+                some_var := 1";
+        let matched_while_loop = matched_parser.parse(&input);
+        let unmatched_while_loop = unmatched_parser.parse(&input);
 
         assert!(matches!(
-            while_loop.unwrap(),
+            matched_while_loop.unwrap(),
+            While {
+                expr: _,
+                statement: _
+            }
+        ));
+        assert!(matches!(
+            unmatched_while_loop.unwrap(),
             While {
                 expr: _,
                 statement: _

@@ -70,6 +70,7 @@ pub enum Statement {
     VariableAssignment(VariableAssignment),
     Block(Vec<Statement>),
     IfElse(IfElse),
+    While(While),
 }
 
 #[derive(Debug, Clone, PartialEq)]
