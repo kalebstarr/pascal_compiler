@@ -84,3 +84,9 @@ pub struct IfElse {
     pub if_statement: Box<Statement>,
     pub else_statement: Option<Box<Statement>>,
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct While {
+    pub expr: Box<Expr>,
+    pub statement: Box<Statement>,
+}

@@ -128,7 +128,7 @@ mod test {
 mod test_grammar {
     use crate::ast::{
         BinaryOp, Expr, Header, IfElse, Literal, Statement, Type, UnaryOp, VariableAssignment,
-        VariableDeclaration,
+        VariableDeclaration, While,
     };
     use lalrpop_util::ParseError;
 
@@ -626,6 +626,24 @@ mod test_grammar {
                     if_statement: _,
                     else_statement: None
                 }))
+        ));
+    }
+
+    #[test]
+    fn while_loop() {
+        let parser = grammar::WhileParser::new();
+
+        let while_loop = parser.parse(
+            "while ( 1 = 2 ) do
+                some_var := 1",
+        );
+
+        assert!(matches!(
+            while_loop.unwrap(),
+            While {
+                expr: _,
+                statement: _
+            }
         ));
     }
 }
