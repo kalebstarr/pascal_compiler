@@ -127,8 +127,8 @@ mod test {
 #[cfg(test)]
 mod test_grammar {
     use crate::ast::{
-        BinaryOp, Expr, Header, IfElse, Literal, Parameter, Statement, Type, UnaryOp,
-        VariableAssignment, VariableDeclaration, While,
+        BinaryOp, Expr, FunctionDeclaration, Header, IfElse, Literal, Parameter, Statement, Type,
+        UnaryOp, VariableAssignment, VariableDeclaration, While,
     };
     use lalrpop_util::ParseError;
 
@@ -747,8 +747,8 @@ mod test_grammar {
     }
 
     #[test]
-    fn function() {
-        let parser = grammar::FunctionParser::new();
+    fn function_and_procedure() {
+        let parser = grammar::FunctionDeclarationParser::new();
 
         // TODO: Test with Function calls
         let func = parser.parse(
@@ -759,10 +759,41 @@ mod test_grammar {
                 if (a>b) then
                     b := 0
                 else
+                    a := 0;
+                SomeFunc := 1
+            end;",
+        );
+        let proc = parser.parse(
+            "procedure SomeFunc(a, b: integer);
+            var
+                a : integer;
+            begin
+                if (a>b) then
+                    b := 0
+                else
                     a := 0
             end;",
         );
 
-        assert!(func.is_ok());
+        assert!(matches!(
+            func.unwrap(),
+            FunctionDeclaration {
+                identifier: _,
+                parameter_list: _,
+                return_type: Some(_),
+                variable_declaration: _,
+                body: _
+            }
+        ));
+        assert!(matches!(
+            proc.unwrap(),
+            FunctionDeclaration {
+                identifier: _,
+                parameter_list: _,
+                return_type: None,
+                variable_declaration: _,
+                body: _
+            }
+        ));
     }
 }

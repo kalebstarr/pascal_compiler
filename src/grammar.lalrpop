@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use crate::ast::{
-    BinaryOp, Expr, Function, Header, IfElse, Literal, Parameter, Program, Statement, Type,
-    UnaryOp, VariableAssignment, VariableDeclaration, While,
+    BinaryOp, Expr, FunctionDeclaration, Header, IfElse, Literal, Parameter, Program, Statement,
+    Type, UnaryOp, VariableAssignment, VariableDeclaration, While,
 };
 
 use lalrpop_util::ParseError;
@@ -16,14 +16,21 @@ pub Header: Header = {
     "program" <Id> => Header::Identifier(<>.to_string()),
 };
 
-pub Function: Function = {
-    "function" <i: Id> "(" <p: ParameterList> ")" ":" <t: Type> ";"
-    <v: VariableDeclarationBlock>
-    <s: Block> ";" => {
-        Function{
+pub FunctionDeclaration: FunctionDeclaration = {
+    "function" <i: Id> "(" <p: ParameterList> ")" ":" <t: Type> ";" <v: VariableDeclarationBlock> <s: Block> ";" => {
+        FunctionDeclaration{
             identifier: i.to_string(),
             parameter_list: p,
-            return_type: t,
+            return_type: Some(t),
+            variable_declaration: v,
+            body: s,
+        }
+    },
+    "procedure" <i: Id> "(" <p: ParameterList> ")" ";" <v: VariableDeclarationBlock> <s: Block> ";" => {
+        FunctionDeclaration{
+            identifier: i.to_string(),
+            parameter_list: p,
+            return_type: None,
             variable_declaration: v,
             body: s,
         }
@@ -250,7 +257,7 @@ match {
     "if", "then", "else",
     "while", "do",
     "var",
-    "function",
+    "function", "procedure",
 
     // Skip
     r"\s*" => { }, // Whitespace

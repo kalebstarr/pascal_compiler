@@ -9,10 +9,10 @@ pub enum Header {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Function {
+pub struct FunctionDeclaration {
     pub identifier: String,
     pub parameter_list: Vec<Parameter>,
-    pub return_type: Type,
+    pub return_type: Option<Type>,
     pub variable_declaration: Vec<VariableDeclaration>,
     pub body: Vec<Statement>,
 }
