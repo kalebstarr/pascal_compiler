@@ -17,18 +17,16 @@ pub Header: Header = {
 };
 
 pub ParameterList: Vec<Parameter> = {
-    <v: (<Parameter> ";")*> <e: Parameter?> => {
-        let mut flattened: Vec<Parameter> = v.into_iter().flatten().collect();
-        match e {
-            None => {
-                flattened
-            },
-            Some(mut e) => {
-                flattened.append(&mut e);
-                flattened
-            }
-        }
+    <v: ParameterListNotEmpty> => v,
+    () => vec![],
+};
+
+ParameterListNotEmpty: Vec<Parameter> = {
+    <mut v: ParameterListNotEmpty> ";" <e: Parameter> => {
+        v.extend(e);
+        v
     },
+    Parameter => <>,
 };
 
 pub Parameter: Vec<Parameter> = {

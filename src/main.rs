@@ -693,6 +693,7 @@ mod test_grammar {
         let parser = grammar::ParameterListParser::new();
 
         let param_list = parser.parse("some_param : integer; param_1, param_2, param_3 : double");
+        let invalid_param_list = parser.parse("some_param : integer;");
 
         assert_eq!(
             param_list.unwrap(),
@@ -715,5 +716,6 @@ mod test_grammar {
                 }
             ]
         );
+        assert!(invalid_param_list.is_err());
     }
 }
