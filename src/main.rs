@@ -660,13 +660,31 @@ mod test_grammar {
         let parser = grammar::ParameterParser::new();
 
         let param = parser.parse("some_param : integer");
+        let mult_param = parser.parse("param_1, param_2, param_3 : integer");
 
         assert_eq!(
             param.unwrap(),
-            Parameter {
+            vec![Parameter {
                 identifier: String::from("some_param"),
                 typ: Type::Integer
-            }
+            }]
+        );
+        assert_eq!(
+            mult_param.unwrap(),
+            vec![
+                Parameter {
+                    identifier: String::from("param_1"),
+                    typ: Type::Integer
+                },
+                Parameter {
+                    identifier: String::from("param_2"),
+                    typ: Type::Integer
+                },
+                Parameter {
+                    identifier: String::from("param_3"),
+                    typ: Type::Integer
+                }
+            ]
         );
     }
 }

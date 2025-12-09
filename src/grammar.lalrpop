@@ -16,8 +16,21 @@ pub Header: Header = {
     "program" <Id> => Header::Identifier(<>.to_string()),
 };
 
-pub Parameter: Parameter = {
-    <i: Id> ":" <t: Type> => Parameter{ identifier: i.to_string(), typ: t },
+pub Parameter: Vec<Parameter> = {
+    <v: (<Id> ",")*> <e: Id> ":" <t: Type> => {
+        let mut param: Vec<Parameter> = v
+            .iter()
+            .map(|elem| Parameter {
+                identifier: elem.to_string(),
+                typ: t.clone(),
+            })
+            .collect();
+        param.push(Parameter {
+            identifier: e.to_string(),
+            typ: t,
+        });
+        param
+    },
 };
 
 pub VariableDeclaration: VariableDeclaration = {
@@ -195,7 +208,7 @@ match {
     "and", "or", "not",
 
     "(", ")",
-    ":", ";", ":=",
+    ":", ";", ":=", ",",
     "true", "false",
     "integer", "double", "boolean", "string",
     "begin", "end",
