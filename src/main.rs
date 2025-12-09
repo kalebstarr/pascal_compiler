@@ -745,4 +745,24 @@ mod test_grammar {
         );
         assert!(invalid_param_list.is_err());
     }
+
+    #[test]
+    fn function() {
+        let parser = grammar::FunctionParser::new();
+
+        // TODO: Test with Function calls
+        let func = parser.parse(
+            "function SomeFunc(a, b: integer): integer;
+            var
+                a : integer;
+            begin
+                if (a>b) then
+                    b := 0
+                else
+                    a := 0
+            end;",
+        );
+
+        assert!(func.is_ok());
+    }
 }
