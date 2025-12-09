@@ -9,6 +9,12 @@ pub enum Header {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct Parameter {
+    pub identifier: String,
+    pub typ: Type,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct VariableDeclaration {
     pub identifier: String,
     pub typ: Type,

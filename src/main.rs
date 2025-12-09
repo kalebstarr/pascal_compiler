@@ -127,8 +127,8 @@ mod test {
 #[cfg(test)]
 mod test_grammar {
     use crate::ast::{
-        BinaryOp, Expr, Header, IfElse, Literal, Statement, Type, UnaryOp, VariableAssignment,
-        VariableDeclaration, While,
+        BinaryOp, Expr, Header, IfElse, Literal, Parameter, Statement, Type, UnaryOp,
+        VariableAssignment, VariableDeclaration, While,
     };
     use lalrpop_util::ParseError;
 
@@ -653,5 +653,20 @@ mod test_grammar {
                 statement: _
             }
         ));
+    }
+
+    #[test]
+    fn parameter() {
+        let parser = grammar::ParameterParser::new();
+
+        let param = parser.parse("some_param : integer");
+
+        assert_eq!(
+            param.unwrap(),
+            Parameter {
+                identifier: String::from("some_param"),
+                typ: Type::Integer
+            }
+        );
     }
 }

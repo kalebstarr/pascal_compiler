@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use crate::ast::{
-    BinaryOp, Expr, Header, IfElse, Literal, Program, Statement, Type, UnaryOp, VariableAssignment,
-    VariableDeclaration, While,
+    BinaryOp, Expr, Header, IfElse, Literal, Parameter, Program, Statement, Type, UnaryOp,
+    VariableAssignment, VariableDeclaration, While,
 };
 
 use lalrpop_util::ParseError;
@@ -14,6 +14,10 @@ pub Program: Box<Program> = {
 
 pub Header: Header = {
     "program" <Id> => Header::Identifier(<>.to_string()),
+};
+
+pub Parameter: Parameter = {
+    <i: Id> ":" <t: Type> => Parameter{ identifier: i.to_string(), typ: t },
 };
 
 pub VariableDeclaration: VariableDeclaration = {
