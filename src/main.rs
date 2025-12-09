@@ -508,6 +508,33 @@ mod test_grammar {
     }
 
     #[test]
+    fn variable_section() {
+        let parser = grammar::VariableDeclarationBlockParser::new();
+
+        let block = parser.parse(
+            "var
+                var_dec_1 : integer;
+                var_dec_2 : double = 2.0;",
+        );
+
+        assert_eq!(
+            block.unwrap(),
+            vec![
+                VariableDeclaration {
+                    identifier: String::from("var_dec_1"),
+                    typ: Type::Integer,
+                    expr: None
+                },
+                VariableDeclaration {
+                    identifier: String::from("var_dec_2"),
+                    typ: Type::Double,
+                    expr: Some(Box::new(Expr::Literal(Literal::Double(2.0))))
+                }
+            ]
+        )
+    }
+
+    #[test]
     fn variable_assignment() {
         let parser = grammar::VariableAssignmentParser::new();
 

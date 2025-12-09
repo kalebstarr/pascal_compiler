@@ -46,6 +46,13 @@ pub Parameter: Vec<Parameter> = {
     },
 };
 
+pub VariableDeclarationBlock: Vec<VariableDeclaration> = {
+    <v: ("var" <VariableDeclaration*>)?> => match v {
+        None => vec![],
+        Some(v) => v,
+    },
+};
+
 pub VariableDeclaration: VariableDeclaration = {
     <i: Id> ":" <t: Type> <e: ("=" <Expr>)?> ";" => {
         VariableDeclaration{ identifier: i.to_string(), typ: t, expr: e }
@@ -220,6 +227,7 @@ match {
     // Boolean
     "and", "or", "not",
 
+    // TODO: Create better ordering
     "(", ")",
     ":", ";", ":=", ",",
     "true", "false",
@@ -227,6 +235,7 @@ match {
     "begin", "end",
     "if", "then", "else",
     "while", "do",
+    "var",
 
     // Skip
     r"\s*" => { }, // Whitespace
