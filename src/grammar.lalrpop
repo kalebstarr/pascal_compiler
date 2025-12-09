@@ -16,6 +16,21 @@ pub Header: Header = {
     "program" <Id> => Header::Identifier(<>.to_string()),
 };
 
+pub ParameterList: Vec<Parameter> = {
+    <v: (<Parameter> ";")*> <e: Parameter?> => {
+        let mut flattened: Vec<Parameter> = v.into_iter().flatten().collect();
+        match e {
+            None => {
+                flattened
+            },
+            Some(mut e) => {
+                flattened.append(&mut e);
+                flattened
+            }
+        }
+    },
+};
+
 pub Parameter: Vec<Parameter> = {
     <v: (<Id> ",")*> <e: Id> ":" <t: Type> => {
         let mut param: Vec<Parameter> = v

@@ -687,4 +687,33 @@ mod test_grammar {
             ]
         );
     }
+
+    #[test]
+    fn parameter_list() {
+        let parser = grammar::ParameterListParser::new();
+
+        let param_list = parser.parse("some_param : integer; param_1, param_2, param_3 : double");
+
+        assert_eq!(
+            param_list.unwrap(),
+            vec![
+                Parameter {
+                    identifier: String::from("some_param"),
+                    typ: Type::Integer
+                },
+                Parameter {
+                    identifier: String::from("param_1"),
+                    typ: Type::Double
+                },
+                Parameter {
+                    identifier: String::from("param_2"),
+                    typ: Type::Double
+                },
+                Parameter {
+                    identifier: String::from("param_3"),
+                    typ: Type::Double
+                }
+            ]
+        );
+    }
 }
