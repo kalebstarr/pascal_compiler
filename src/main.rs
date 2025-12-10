@@ -615,6 +615,12 @@ mod test_grammar {
             else
                 other_var := 2",
         );
+        let invalid_if_else = parser.parse(
+            "if ( 1 = 2 ) then
+                some_var := 1;
+            else
+                other_var := 2",
+        );
 
         assert!(matches!(
             if_else.unwrap(),
@@ -624,6 +630,7 @@ mod test_grammar {
                 else_statement: Some(_)
             }
         ));
+        assert!(invalid_if_else.is_err());
     }
 
     #[test]
