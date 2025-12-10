@@ -9,11 +9,13 @@ use lalrpop_util::ParseError;
 grammar;
 
 pub Program: Box<Program> = {
-    <h: Header> => Box::new(Program{ header: h }),
+    <h: Header> <v: VariableDeclarationBlock> <f: FunctionDeclaration*> <m: Block> "." => {
+        Box::new(Program{ header: h, variables: v, functions: f, main: m })
+    },
 };
 
 pub Header: Header = {
-    "program" <Identifier> => Header::Identifier(<>),
+    "program" <Identifier> ";" => Header::Identifier(<>),
 };
 
 pub FunctionDeclaration: FunctionDeclaration = {
@@ -271,7 +273,7 @@ match {
 
     // TODO: Create better ordering
     "(", ")",
-    ":", ";", ":=", ",",
+    ":", ";", ":=", ",", ".",
     "true", "false",
     "integer", "double", "boolean", "string",
     "begin", "end",

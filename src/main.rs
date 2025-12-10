@@ -139,7 +139,7 @@ mod test_grammar {
         let parser = grammar::HeaderParser::new();
 
         assert_eq!(
-            parser.parse("program Fibonacci").unwrap(),
+            parser.parse("program Fibonacci;").unwrap(),
             Header::Identifier(String::from("Fibonacci"))
         );
     }
@@ -164,10 +164,10 @@ mod test_grammar {
         // Comments should be available everywhere in the grammar
         let parser = grammar::HeaderParser::new();
 
-        let valid_1 = parser.parse("program Fib1 // Some comment");
+        let valid_1 = parser.parse("program Fib1; // Some comment");
         let valid_2 = parser.parse(
             "
-            program Fib2 (*\n\
+            program Fib2; (*\n\
                 some comments \n\r\
                 some other comment \
             *)\
@@ -175,7 +175,7 @@ mod test_grammar {
         );
         let valid_3 = parser.parse(
             "
-            program Fib3 {\n\
+            program Fib3; {\n\
                 some comments \n\r\
                 some other comment \
                 }\
@@ -192,8 +192,8 @@ mod test_grammar {
         // Comments should be available everywhere in the grammar
         let parser = grammar::HeaderParser::new();
 
-        let invalid_1 = parser.parse("program Fib1 (*\n");
-        let invalid_2 = parser.parse("program Fib2 {\n");
+        let invalid_1 = parser.parse("program Fib1; (*\n");
+        let invalid_2 = parser.parse("program Fib2; {\n");
 
         assert!(invalid_1.is_err());
         let err = invalid_1.unwrap_err();
@@ -839,5 +839,34 @@ mod test_grammar {
                 ]
             }
         )
+    }
+
+    #[test]
+    fn program() {
+        let parser = grammar::ProgramParser::new();
+
+        let fibonacci = parser.parse(
+            "
+            program Fibonacci;
+
+            function Fib(n: integer): integer;
+            begin
+                if (n>0) then
+                    if (n<=2) then
+                        Fib := 1
+                    else
+                        Fib := Fib(n-1) + Fib(n-2)
+                else
+                    Fib := 0
+            end;
+
+            begin
+                writeln (Fib(5));
+                writeln (Fib(10));
+            end.
+            ",
+        );
+
+        assert!(fibonacci.is_ok());
     }
 }
