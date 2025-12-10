@@ -154,6 +154,19 @@ pub Block: Vec<Statement> = {
     },
 };
 
+pub ArgumentList: Vec<Box<Expr>> = {
+    <v: Args> => v,
+    () => vec![],
+};
+
+Args: Vec<Box<Expr>> = {
+    <mut v: Args> "," <e: Expr> => {
+        v.push(e);
+        v
+    },
+    Expr => vec![<>],
+};
+
 Tier<Op, NextTier>: Box<Expr> = {
     Tier<Op, NextTier> Op NextTier => Box::new(Expr::Binary(<>)),
     NextTier,

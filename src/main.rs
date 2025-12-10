@@ -796,4 +796,23 @@ mod test_grammar {
             }
         ));
     }
+
+    #[test]
+    fn argument_list() {
+        let parser = grammar::ArgumentListParser::new();
+
+        let arg_list = parser.parse("1, 'something', 2.0, true");
+        let invalid_arg_list = parser.parse("1,");
+
+        assert_eq!(
+            arg_list.unwrap(),
+            vec![
+                Box::new(Expr::Literal(Literal::Integer(1))),
+                Box::new(Expr::Literal(Literal::String(String::from("'something'")))),
+                Box::new(Expr::Literal(Literal::Double(2.0))),
+                Box::new(Expr::Literal(Literal::Boolean(true))),
+            ]
+        );
+        assert!(invalid_arg_list.is_err());
+    }
 }
