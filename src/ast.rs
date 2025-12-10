@@ -18,6 +18,12 @@ pub struct FunctionDeclaration {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct FunctionCall {
+    pub identifier: String,
+    pub arguments: Vec<Box<Expr>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Parameter {
     pub identifier: String,
     pub typ: Type,

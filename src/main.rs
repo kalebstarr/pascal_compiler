@@ -127,8 +127,8 @@ mod test {
 #[cfg(test)]
 mod test_grammar {
     use crate::ast::{
-        BinaryOp, Expr, FunctionDeclaration, Header, IfElse, Literal, Parameter, Statement, Type,
-        UnaryOp, VariableAssignment, VariableDeclaration, While,
+        BinaryOp, Expr, FunctionCall, FunctionDeclaration, Header, IfElse, Literal, Parameter,
+        Statement, Type, UnaryOp, VariableAssignment, VariableDeclaration, While,
     };
     use lalrpop_util::ParseError;
 
@@ -814,5 +814,23 @@ mod test_grammar {
             ]
         );
         assert!(invalid_arg_list.is_err());
+    }
+
+    #[test]
+    fn function_call() {
+        let parser = grammar::FunctionCallParser::new();
+
+        let func_call = parser.parse("SomeFunc(1, 'a string')");
+
+        assert_eq!(
+            func_call.unwrap(),
+            FunctionCall {
+                identifier: String::from("SomeFunc"),
+                arguments: vec![
+                    Box::new(Expr::Literal(Literal::Integer(1))),
+                    Box::new(Expr::Literal(Literal::String(String::from("'a string'")))),
+                ]
+            }
+        )
     }
 }

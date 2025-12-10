@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use crate::ast::{
-    BinaryOp, Expr, FunctionDeclaration, Header, IfElse, Literal, Parameter, Program, Statement,
-    Type, UnaryOp, VariableAssignment, VariableDeclaration, While,
+    BinaryOp, Expr, FunctionCall, FunctionDeclaration, Header, IfElse, Literal, Parameter, Program,
+    Statement, Type, UnaryOp, VariableAssignment, VariableDeclaration, While,
 };
 
 use lalrpop_util::ParseError;
@@ -151,6 +151,12 @@ pub Block: Vec<Statement> = {
     "begin" <mut v: (<Statement> ";")*> <e: Statement> (";")? "end" => {
         v.push(e);
         v
+    },
+};
+
+pub FunctionCall: FunctionCall = {
+    <i: Identifier> "(" <a: ArgumentList> ")" => {
+        FunctionCall{ identifier: i, arguments: a }
     },
 };
 
