@@ -97,6 +97,7 @@ pub MatchedStatement: Statement = {
     Block => Statement::Block(<>),
     MatchedIf => Statement::IfElse(<>),
     MatchedWhile => Statement::While(<>),
+    FunctionCall => Statement::FunctionCall(<>),
 };
 pub UnmatchedStatement: Statement = {
     UnmatchedIf => Statement::IfElse(<>),

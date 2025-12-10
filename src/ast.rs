@@ -50,6 +50,7 @@ pub enum Statement {
     Block(Vec<Statement>),
     IfElse(IfElse),
     While(While),
+    FunctionCall(FunctionCall),
 }
 
 #[derive(Debug, Clone, PartialEq)]
