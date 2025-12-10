@@ -13,22 +13,22 @@ pub Program: Box<Program> = {
 };
 
 pub Header: Header = {
-    "program" <Id> => Header::Identifier(<>.to_string()),
+    "program" <Identifier> => Header::Identifier(<>),
 };
 
 pub FunctionDeclaration: FunctionDeclaration = {
-    "function" <i: Id> "(" <p: ParameterList> ")" ":" <t: Type> ";" <v: VariableDeclarationBlock> <s: Block> ";" => {
+    "function" <i: Identifier> "(" <p: ParameterList> ")" ":" <t: Type> ";" <v: VariableDeclarationBlock> <s: Block> ";" => {
         FunctionDeclaration{
-            identifier: i.to_string(),
+            identifier: i,
             parameter_list: p,
             return_type: Some(t),
             variable_declaration: v,
             body: s,
         }
     },
-    "procedure" <i: Id> "(" <p: ParameterList> ")" ";" <v: VariableDeclarationBlock> <s: Block> ";" => {
+    "procedure" <i: Identifier> "(" <p: ParameterList> ")" ";" <v: VariableDeclarationBlock> <s: Block> ";" => {
         FunctionDeclaration{
-            identifier: i.to_string(),
+            identifier: i,
             parameter_list: p,
             return_type: None,
             variable_declaration: v,
@@ -51,7 +51,7 @@ ParameterListNotEmpty: Vec<Parameter> = {
 };
 
 pub Parameter: Vec<Parameter> = {
-    <v: (<Id> ",")*> <e: Id> ":" <t: Type> => {
+    <v: (<Identifier> ",")*> <e: Identifier> ":" <t: Type> => {
         let mut param: Vec<Parameter> = v
             .iter()
             .map(|elem| Parameter {
@@ -60,7 +60,7 @@ pub Parameter: Vec<Parameter> = {
             })
             .collect();
         param.push(Parameter {
-            identifier: e.to_string(),
+            identifier: e,
             typ: t,
         });
         param
@@ -75,8 +75,8 @@ pub VariableDeclarationBlock: Vec<VariableDeclaration> = {
 };
 
 pub VariableDeclaration: VariableDeclaration = {
-    <i: Id> ":" <t: Type> <e: ("=" <Expr>)?> ";" => {
-        VariableDeclaration{ identifier: i.to_string(), typ: t, expr: e }
+    <i: Identifier> ":" <t: Type> <e: ("=" <Expr>)?> ";" => {
+        VariableDeclaration{ identifier: i, typ: t, expr: e }
     },
 };
 
@@ -142,8 +142,8 @@ pub UnmatchedWhile: While = {
 };
 
 pub VariableAssignment: VariableAssignment = {
-    <i: Id> ":=" <e: Expr> => {
-        VariableAssignment{ identifier: i.to_string(), expr: e }
+    <i: Identifier> ":=" <e: Expr> => {
+        VariableAssignment{ identifier: i, expr: e }
     },
 };
 
