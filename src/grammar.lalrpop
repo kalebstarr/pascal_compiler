@@ -203,7 +203,7 @@ AddOp: BinaryOp = {
 MulOp: BinaryOp= {
     "*" => BinaryOp::Mul,
     "/" => BinaryOp::Div,
-    "%" => BinaryOp::Mod,
+    "mod" => BinaryOp::Mod,
     "and" => BinaryOp::And,
 };
 
@@ -265,7 +265,7 @@ match {
 
     // Operators
     // Arithmetic
-    "+", "-", "*", "/", "%",
+    "+", "-", "*", "/", "mod",
     // Comparison
     "=", "<", ">", "<=", ">=", "<>",
     // Boolean

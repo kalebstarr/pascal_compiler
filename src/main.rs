@@ -409,7 +409,7 @@ mod test_grammar {
         let parser = grammar::ExprParser::new();
 
         let right_mul = parser.parse("1 + 2 * 3");
-        let left_mul = parser.parse("1 % 2 - 3");
+        let left_mul = parser.parse("1 mod 2 - 3");
 
         assert_eq!(
             right_mul.unwrap(),
