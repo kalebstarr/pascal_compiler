@@ -273,7 +273,10 @@ mod test_grammar {
         );
         assert_eq!(
             func_call.unwrap(),
-            Box::new(Expr::FunctionCall(FunctionCall { identifier: String::from("SomeFunc"), arguments: vec![] }))
+            Box::new(Expr::FunctionCall(FunctionCall {
+                identifier: String::from("SomeFunc"),
+                arguments: vec![]
+            }))
         );
     }
 
@@ -755,25 +758,24 @@ mod test_grammar {
     fn function_and_procedure() {
         let parser = grammar::FunctionDeclarationParser::new();
 
-        // TODO: Test with Function calls
         let func = parser.parse(
-            "function SomeFunc(a, b: integer): integer;
-            var
-                a : integer;
+            "function Fib(n: integer): integer;
             begin
-                if (a>b) then
-                    b := 0
+                if (n>0) then
+                    if (n<=2) then
+                        Fib := 1
+                    else
+                        Fib := Fib(n-1) + Fib(n-2)
                 else
-                    a := 0;
-                SomeFunc := 1
+                    Fib := 0
             end;",
         );
         let proc = parser.parse(
             "procedure SomeFunc(a, b: integer);
             var
-                a : integer;
+                c : integer;
             begin
-                if (a>b) then
+                if (a>c) then
                     b := 0
                 else
                     a := 0
