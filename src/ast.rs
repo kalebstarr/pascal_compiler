@@ -85,6 +85,7 @@ pub enum Expr {
     Identifier(String),
     Binary(Box<Expr>, BinaryOp, Box<Expr>),
     Unary(UnaryOp, Box<Expr>),
+    FunctionCall(FunctionCall),
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -247,6 +247,7 @@ mod test_grammar {
         let string = parser.parse("'some string'");
         let boolean = parser.parse("true");
         let identifier = parser.parse("some_identifier_9");
+        let func_call = parser.parse("SomeFunc()");
 
         assert_eq!(
             integer.unwrap(),
@@ -269,6 +270,10 @@ mod test_grammar {
         assert_eq!(
             identifier.unwrap(),
             Box::new(Expr::Identifier(String::from("some_identifier_9")))
+        );
+        assert_eq!(
+            func_call.unwrap(),
+            Box::new(Expr::FunctionCall(FunctionCall { identifier: String::from("SomeFunc"), arguments: vec![] }))
         );
     }
 

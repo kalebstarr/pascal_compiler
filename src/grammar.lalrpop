@@ -219,6 +219,7 @@ pub Term: Box<Expr> = {
     Literal => Box::new(Expr::Literal(<>)),
     Identifier => Box::new(Expr::Identifier(<>)),
     "(" <Expr> ")",
+    FunctionCall => Box::new(Expr::FunctionCall(<>)),
 };
 
 Literal: Literal = {
