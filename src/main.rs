@@ -9,6 +9,7 @@ lalrpop_mod!(
 );
 
 pub mod ast;
+mod type_checker;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
