@@ -31,7 +31,8 @@ fn main() {
         process::exit(1);
     });
 
-    println!("{:?}", grammar::ProgramParser::new().parse(&file_content));
+    let ast = grammar::ProgramParser::new().parse(&file_content);
+    println!("{:?}", ast);
 }
 
 fn has_pas_extension(path: &Path) -> bool {
@@ -583,6 +584,8 @@ mod test_grammar {
                 var_assign_1 := 1;
             end",
         );
+        let empty_block = parser.parse("begin end");
+        let semicolon_block = parser.parse("begin ; ; end");
 
         let assignment = vec![
             Statement::VariableAssignment(VariableAssignment {
@@ -603,6 +606,8 @@ mod test_grammar {
         })];
         assert_eq!(single_no_semicolon.unwrap(), single_assignment);
         assert_eq!(single_with_semicolon.unwrap(), single_assignment);
+        assert!(empty_block.unwrap().is_empty());
+        assert!(semicolon_block.unwrap().is_empty());
     }
 
     #[test]
