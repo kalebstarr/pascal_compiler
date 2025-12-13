@@ -15,7 +15,7 @@ pub Program: Box<Program> = {
 };
 
 pub Header: Header = {
-    "program" <Identifier> ";" => Header::Identifier(<>),
+    "program" <Identifier> ";" => Header{ identifier: <> },
 };
 
 pub FunctionDeclaration: FunctionDeclaration = {

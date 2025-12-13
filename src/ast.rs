@@ -7,8 +7,8 @@ pub struct Program {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Header {
-    Identifier(String),
+pub struct Header {
+    pub identifier: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -22,6 +22,7 @@ fn main() {
     });
 
     let path = Path::new(&file_path);
+    assert!(path.is_file());
     if !has_pas_extension(&path) {
         eprintln!("Problem reading file: Invalid file extension");
         usage_tip();
@@ -38,7 +39,7 @@ fn main() {
     match result {
         Ok(program) => {
             let mut checker = TypeChecker::new();
-            checker.check_program(&program);
+            checker.check_program(&program, &path);
         }
         Err(e) => println!("{:?}", e),
     }
@@ -150,7 +151,9 @@ mod test_grammar {
 
         assert_eq!(
             parser.parse("program Fibonacci;").unwrap(),
-            Header::Identifier(String::from("Fibonacci"))
+            Header {
+                identifier: String::from("Fibonacci")
+            }
         );
     }
 
@@ -192,9 +195,24 @@ mod test_grammar {
             ",
         );
 
-        assert_eq!(valid_1, Ok(Header::Identifier("Fib1".to_string())));
-        assert_eq!(valid_2, Ok(Header::Identifier("Fib2".to_string())));
-        assert_eq!(valid_3, Ok(Header::Identifier("Fib3".to_string())));
+        assert_eq!(
+            valid_1,
+            Ok(Header {
+                identifier: ("Fib1".to_string())
+            })
+        );
+        assert_eq!(
+            valid_2,
+            Ok(Header {
+                identifier: ("Fib2".to_string())
+            })
+        );
+        assert_eq!(
+            valid_3,
+            Ok(Header {
+                identifier: ("Fib3".to_string())
+            })
+        );
     }
 
     #[test]
