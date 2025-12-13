@@ -2,6 +2,8 @@ use std::{env, error::Error, fmt::Display, fs, path::Path, process};
 
 use lalrpop_util::lalrpop_mod;
 
+use crate::type_checker::TypeChecker;
+
 lalrpop_mod!(
     #[allow(clippy::ptr_arg)]
     #[rustfmt::skip]
@@ -32,8 +34,14 @@ fn main() {
         process::exit(1);
     });
 
-    let ast = grammar::ProgramParser::new().parse(&file_content);
-    println!("{:?}", ast);
+    let result = grammar::ProgramParser::new().parse(&file_content);
+    match result {
+        Ok(program) => {
+            let mut checker = TypeChecker::new();
+            checker.check_program(&program);
+        }
+        Err(e) => println!("{:?}", e),
+    }
 }
 
 fn has_pas_extension(path: &Path) -> bool {
