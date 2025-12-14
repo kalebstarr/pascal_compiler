@@ -41,7 +41,7 @@ fn main() {
             let mut checker = TypeChecker::new();
             checker.check_program(&program, &path);
         }
-        Err(e) => println!("{:?}", e),
+        Err(e) => println!("Parse Error: {:?}", e),
     }
 }
 
