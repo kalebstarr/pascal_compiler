@@ -150,10 +150,12 @@ pub VariableAssignment: VariableAssignment = {
     },
 };
 
-// TODO: Allow blocks to contain no statements. Either adjust block or statement grammar.
+// TODO: Allow semicolons as separators.
 pub Block: Vec<Statement> = {
-    "begin" <mut v: (<Statement> ";")*> <e: Statement> (";")? "end" => {
-        v.push(e);
+    "begin" <mut v: (<Statement> ";")*> <e: Statement?> "end" => {
+        if let Some(s) = e {
+            v.push(s);
+        }
         v
     },
 };
