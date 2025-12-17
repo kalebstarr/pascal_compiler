@@ -107,7 +107,7 @@ pub UnmatchedStatement: Statement = {
 };
 
 pub MatchedIf: IfElse = {
-    "if" "(" <expr: Expr> ")" "then" <i: MatchedStatement> "else" <e: MatchedStatement> => {
+    "if" <expr: Expr> "then" <i: MatchedStatement> "else" <e: MatchedStatement> => {
         IfElse{ 
             expr: expr, 
             if_statement: Box::new(i), 
@@ -116,14 +116,14 @@ pub MatchedIf: IfElse = {
     },
 };
 pub UnmatchedIf: IfElse = {
-    "if" "(" <expr: Expr> ")" "then" <i: Statement> => {
+    "if" <expr: Expr> "then" <i: Statement> => {
         IfElse{ 
             expr: expr, 
             if_statement: Box::new(i), 
             else_statement: None, 
         }
     },
-    "if" "(" <expr: Expr> ")" "then" <i: MatchedStatement> "else" <e: UnmatchedStatement> => {
+    "if" <expr: Expr> "then" <i: MatchedStatement> "else" <e: UnmatchedStatement> => {
         IfElse{ 
             expr: expr, 
             if_statement: Box::new(i), 
@@ -133,7 +133,7 @@ pub UnmatchedIf: IfElse = {
 };
 
 While<StatementType>: While = {
-    "while" "(" <e: Expr> ")" "do" <s: StatementType> => {
+    "while" <e: Expr> "do" <s: StatementType> => {
         While{ expr: e, statement: Box::new(s) }
     },
 };
