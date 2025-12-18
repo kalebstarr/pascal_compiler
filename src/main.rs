@@ -16,7 +16,7 @@ mod type_checker;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let file_path = read_args(&args).unwrap_or_else(|err| {
-        println!("Problem parsing arguments: {err}");
+        eprintln!("Problem parsing arguments: {err}");
         usage_tip();
         process::exit(1);
     });
@@ -30,7 +30,7 @@ fn main() {
     }
 
     let file_content = fs::read_to_string(path).unwrap_or_else(|err| {
-        println!("Problem reading file: {err}");
+        eprintln!("Problem reading file: {err}");
         usage_tip();
         process::exit(1);
     });
@@ -41,7 +41,7 @@ fn main() {
             let mut checker = TypeChecker::new();
             checker.check_program(&program, &path);
         }
-        Err(e) => println!("Parse Error: {:?}", e),
+        Err(e) => eprintln!("Parse Error: {:?}", e),
     }
 }
 
