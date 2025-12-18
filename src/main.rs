@@ -524,22 +524,35 @@ mod test_grammar {
 
         let var_decl = parser.parse("some_name : integer;");
         let var_decl_init = parser.parse("some_name : boolean = true;");
+        let mult_decl = parser.parse("some_name, another_name : boolean = true;");
 
         assert_eq!(
             var_decl.unwrap(),
-            VariableDeclaration {
+            vec![VariableDeclaration {
                 identifier: "some_name".to_string(),
                 typ: Type::Integer,
                 expr: None,
-            }
+            }]
         );
         assert_eq!(
             var_decl_init.unwrap(),
-            VariableDeclaration {
+            vec![VariableDeclaration {
                 identifier: "some_name".to_string(),
                 typ: Type::Boolean,
                 expr: Some(Box::new(Expr::Literal(Literal::Boolean(true)))),
-            }
+            }]
+        );
+        assert_eq!(
+            mult_decl.unwrap(),
+            vec![VariableDeclaration {
+                identifier: "some_name".to_string(),
+                typ: Type::Boolean,
+                expr: Some(Box::new(Expr::Literal(Literal::Boolean(true)))),
+            },VariableDeclaration {
+                identifier: "another_name".to_string(),
+                typ: Type::Boolean,
+                expr: Some(Box::new(Expr::Literal(Literal::Boolean(true)))),
+            }]
         );
     }
 

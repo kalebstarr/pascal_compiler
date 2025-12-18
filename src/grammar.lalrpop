@@ -53,32 +53,39 @@ ParameterListNotEmpty: Vec<Parameter> = {
 };
 
 pub Parameter: Vec<Parameter> = {
-    <v: (<Identifier> ",")*> <e: Identifier> ":" <t: Type> => {
-        let mut param: Vec<Parameter> = v
+    <v: IdentifierList> ":" <t: Type> => {
+        let params: Vec<Parameter> = v
             .iter()
             .map(|elem| Parameter {
                 identifier: elem.to_string(),
                 typ: t.clone(),
             })
             .collect();
-        param.push(Parameter {
-            identifier: e,
-            typ: t,
-        });
-        param
+        params
     },
 };
 
 pub VariableDeclarationBlock: Vec<VariableDeclaration> = {
     <v: ("var" <VariableDeclaration*>)?> => match v {
         None => vec![],
-        Some(v) => v,
+        Some(v) => {
+            let flat: Vec<VariableDeclaration> = v.concat();
+            flat
+        },
     },
 };
 
-pub VariableDeclaration: VariableDeclaration = {
-    <i: Identifier> ":" <t: Type> <e: ("=" <Expr>)?> ";" => {
-        VariableDeclaration{ identifier: i, typ: t, expr: e }
+pub VariableDeclaration: Vec<VariableDeclaration> = {
+    <v: IdentifierList> ":" <t: Type> <e: ("=" <Expr>)?> ";" => {
+        let var_decs: Vec<VariableDeclaration> = v
+            .iter()
+            .map(|elem| VariableDeclaration {
+                identifier: elem.to_string(),
+                typ: t.clone(),
+                expr: e.clone(),
+            })
+            .collect();
+        var_decs
     },
 };
 
@@ -256,6 +263,13 @@ pub String: String = {
 Boolean: bool = {
     "true" => true,
     "false" => false,
+};
+
+IdentifierList: Vec<String> = {
+    <mut v: (<Identifier> ",")*> <e: Identifier> => {
+        v.push(e);
+        v
+    }
 };
 
 Identifier: String = {
