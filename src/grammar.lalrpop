@@ -68,10 +68,7 @@ pub Parameter: Vec<Parameter> = {
 pub VariableDeclarationBlock: Vec<VariableDeclaration> = {
     <v: ("var" <VariableDeclaration*>)?> => match v {
         None => vec![],
-        Some(v) => {
-            let flat: Vec<VariableDeclaration> = v.concat();
-            flat
-        },
+        Some(v) => v.into_iter().flatten().collect(),
     },
 };
 
