@@ -6,8 +6,10 @@ struct Symbol {
     is_function: bool,
 }
 
+#[derive(PartialEq)]
 enum TypeError {
     HeaderError(String),
+    VariableError(String),
 }
 
 pub struct TypeChecker {
@@ -31,6 +33,16 @@ impl TypeChecker {
 
     fn pop_scope(&mut self) {
         self.symbol_tables.pop();
+    }
+
+    fn symbol_exists(&mut self, entry: &String) -> bool {
+        self.symbol_tables.iter().any(|map| map.contains_key(entry))
+    }
+
+    fn insert_in_current_scope(&mut self, key: String, value: Symbol) {
+        if let Some(map) = self.symbol_tables.iter_mut().last() {
+            map.insert(key, value);
+        }
     }
 
     pub fn check_program(&mut self, program: &Program, program_path: &Path) {
@@ -69,7 +81,20 @@ impl TypeChecker {
     }
 
     fn check_variable(&mut self, variable: &VariableDeclaration) {
-        todo!()
+        if self.symbol_exists(&variable.identifier) {
+            self.errors.push(TypeError::VariableError(format!(
+                "Variable already exists: {}",
+                variable.identifier
+            )));
+        } else {
+            self.insert_in_current_scope(
+                variable.identifier.clone(),
+                Symbol {
+                    symbol_type: variable.typ.clone(),
+                    is_function: false,
+                },
+            );
+        }
     }
 
     fn check_function(&mut self, function: &FunctionDeclaration) {
@@ -87,12 +112,87 @@ mod type_checker_tests {
 
     #[test]
     fn header() {
-        let header = Header{ identifier: String::from("Something") };
+        let header = Header {
+            identifier: String::from("Something"),
+        };
         let path = Path::new("Something.pas");
         let mut checker = TypeChecker::new();
 
         checker.check_header(&header, &path);
 
         assert!(checker.errors.is_empty());
+    }
+
+    #[test]
+    fn symbol_exists() {
+        let mut table_1 = HashMap::new();
+        table_1.insert(
+            String::from("var_1"),
+            Symbol {
+                symbol_type: Type::Integer,
+                is_function: false,
+            },
+        );
+        let mut table_2 = HashMap::new();
+        table_2.insert(
+            String::from("var_2"),
+            Symbol {
+                symbol_type: Type::Boolean,
+                is_function: true,
+            },
+        );
+
+        let mut checker = TypeChecker {
+            symbol_tables: vec![table_1, table_2],
+            errors: Vec::new(),
+        };
+
+        assert!(checker.symbol_exists(&String::from("var_1")));
+        assert!(checker.symbol_exists(&String::from("var_2")));
+        assert!(!checker.symbol_exists(&String::from("Does not exist")));
+    }
+
+    #[test]
+    fn variable() {
+        let mut table = HashMap::new();
+        table.insert(
+            String::from("var_1"),
+            Symbol {
+                symbol_type: Type::Integer,
+                is_function: false,
+            },
+        );
+
+        let mut checker = TypeChecker {
+            symbol_tables: vec![table, HashMap::new()],
+            errors: Vec::new(),
+        };
+
+        checker.check_variable(&VariableDeclaration {
+            identifier: String::from("var_1"),
+            typ: Type::Integer,
+            expr: None,
+        });
+        checker.check_variable(&VariableDeclaration {
+            identifier: String::from("var_2"),
+            typ: Type::Integer,
+            expr: None,
+        });
+
+        assert!(
+            checker
+                .errors
+                .contains(&TypeError::VariableError(String::from(
+                    "Variable already exists: var_1"
+                )))
+        );
+        assert!(
+            !checker
+                .errors
+                .contains(&TypeError::VariableError(String::from(
+                    "Variable already exists: var_2"
+                )))
+        );
+        assert!(checker.symbol_exists(&String::from("var_2")));
     }
 }
