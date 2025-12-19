@@ -1,4 +1,6 @@
-use crate::ast::{FunctionDeclaration, Header, Program, Statement, Type, VariableDeclaration};
+use crate::ast::{
+    Expr, FunctionDeclaration, Header, Literal, Program, Statement, Type, VariableDeclaration,
+};
 use std::{collections::HashMap, path::Path};
 
 struct Symbol {
@@ -95,6 +97,10 @@ impl TypeChecker {
                 },
             );
         }
+
+        if let Some(expr) = &variable.expr {
+            self.check_expr(&expr);
+        }
     }
 
     fn check_function(&mut self, function: &FunctionDeclaration) {
@@ -102,6 +108,10 @@ impl TypeChecker {
     }
 
     fn check_statement(&mut self, statement: &Statement) {
+        todo!()
+    }
+
+    fn check_expr(&mut self, expr: &Expr) {
         todo!()
     }
 }
@@ -152,8 +162,9 @@ mod type_checker_tests {
         assert!(!checker.symbol_exists(&String::from("Does not exist")));
     }
 
+    // TODO: Test with expr
     #[test]
-    fn variable() {
+    fn variable_without_expr() {
         let mut table = HashMap::new();
         table.insert(
             String::from("var_1"),
