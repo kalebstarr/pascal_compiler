@@ -37,8 +37,12 @@ impl TypeChecker {
         self.symbol_tables.pop();
     }
 
-    fn symbol_exists(&mut self, entry: &String) -> bool {
+    fn symbol_exists(&mut self, entry: &str) -> bool {
         self.symbol_tables.iter().any(|map| map.contains_key(entry))
+    }
+
+    fn lookup_symbol(&self, name: &str) -> Option<&Symbol> {
+        self.symbol_tables.iter().rev().find_map(|map| map.get(name))
     }
 
     fn insert_in_current_scope(&mut self, key: String, value: Symbol) {
@@ -83,7 +87,7 @@ impl TypeChecker {
     }
 
     fn check_variable(&mut self, variable: &VariableDeclaration) {
-        if self.symbol_exists(&variable.identifier) {
+        if self.symbol_exists(variable.identifier.as_str()) {
             self.errors.push(TypeError::VariableError(format!(
                 "Variable already exists: {}",
                 variable.identifier
@@ -157,9 +161,9 @@ mod type_checker_tests {
             errors: Vec::new(),
         };
 
-        assert!(checker.symbol_exists(&String::from("var_1")));
-        assert!(checker.symbol_exists(&String::from("var_2")));
-        assert!(!checker.symbol_exists(&String::from("Does not exist")));
+        assert!(checker.symbol_exists("var_1"));
+        assert!(checker.symbol_exists("var_2"));
+        assert!(!checker.symbol_exists("Does not exist"));
     }
 
     // TODO: Test with expr
