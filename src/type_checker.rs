@@ -1,5 +1,5 @@
 use crate::ast::{
-    Expr, FunctionCall, FunctionDeclaration, Header, Literal, Program, Statement, Type,
+    Expr, FunctionCall, FunctionDeclaration, Header, Literal, Program, Statement, Type, UnaryOp,
     VariableDeclaration,
 };
 use std::{collections::HashMap, path::Path};
@@ -21,6 +21,7 @@ pub struct TypeChecker {
     errors: Vec<TypeError>,
 }
 
+// TODO: Improve error printing and error messages
 impl TypeChecker {
     pub fn new() -> Self {
         let mut t = TypeChecker {
@@ -169,7 +170,36 @@ impl TypeChecker {
                 Some(sym.symbol_type.clone())
             }
             Expr::Unary(op, expr) => {
-                todo!()
+                let inner = self.check_expr(&expr);
+                let Some(inner) = inner else {
+                    return None;
+                };
+
+                match op {
+                    UnaryOp::Not => {
+                        if inner != Type::Boolean {
+                            self.errors.push(TypeError::ExprError(format!(
+                                "Expected boolean for unary operator not. Found {:?}",
+                                inner
+                            )));
+                            return None;
+                        } else {
+                            Some(Type::Boolean)
+                        }
+                    }
+                    UnaryOp::Pos | UnaryOp::Neg => {
+                        if !matches!(inner, Type::Integer | Type::Double) {
+                            self.errors.push(TypeError::ExprError(format!(
+                                "Expected numeric value for unary operator {:?}. Found {:?}",
+                                op,
+                                inner
+                            )));
+                            return None;
+                        } else {
+                            Some(inner)
+                        }
+                    }
+                }
             }
             Expr::Binary(left, op, right) => {
                 todo!()
