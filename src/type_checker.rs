@@ -9,8 +9,8 @@ struct Symbol {
     is_function: bool,
 }
 
-#[derive(PartialEq)]
-enum TypeError {
+#[derive(Debug, PartialEq)]
+pub enum TypeError {
     HeaderError(String),
     VariableError(String),
     ExprError(String),
@@ -18,7 +18,7 @@ enum TypeError {
 
 pub struct TypeChecker {
     symbol_tables: Vec<HashMap<String, Symbol>>,
-    errors: Vec<TypeError>,
+    pub errors: Vec<TypeError>,
 }
 
 // TODO: Improve error printing and error messages

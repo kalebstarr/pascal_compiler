@@ -40,6 +40,13 @@ fn main() {
         Ok(program) => {
             let mut checker = TypeChecker::new();
             checker.check_program(&program, &path);
+
+            if !checker.errors.is_empty() {
+                for err in checker.errors {
+                    eprintln!("Type Error: {:?}", err);
+                }
+                return;
+            }
         }
         Err(e) => eprintln!("Parse Error: {:?}", e),
     }
@@ -544,15 +551,18 @@ mod test_grammar {
         );
         assert_eq!(
             mult_decl.unwrap(),
-            vec![VariableDeclaration {
-                identifier: "some_name".to_string(),
-                typ: Type::Boolean,
-                expr: Some(Box::new(Expr::Literal(Literal::Boolean(true)))),
-            },VariableDeclaration {
-                identifier: "another_name".to_string(),
-                typ: Type::Boolean,
-                expr: Some(Box::new(Expr::Literal(Literal::Boolean(true)))),
-            }]
+            vec![
+                VariableDeclaration {
+                    identifier: "some_name".to_string(),
+                    typ: Type::Boolean,
+                    expr: Some(Box::new(Expr::Literal(Literal::Boolean(true)))),
+                },
+                VariableDeclaration {
+                    identifier: "another_name".to_string(),
+                    typ: Type::Boolean,
+                    expr: Some(Box::new(Expr::Literal(Literal::Boolean(true)))),
+                }
+            ]
         );
     }
 
