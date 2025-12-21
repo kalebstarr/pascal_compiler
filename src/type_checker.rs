@@ -12,6 +12,7 @@ struct Symbol {
 enum TypeError {
     HeaderError(String),
     VariableError(String),
+    ExprError(String),
 }
 
 pub struct TypeChecker {
@@ -42,7 +43,10 @@ impl TypeChecker {
     }
 
     fn lookup_symbol(&self, name: &str) -> Option<&Symbol> {
-        self.symbol_tables.iter().rev().find_map(|map| map.get(name))
+        self.symbol_tables
+            .iter()
+            .rev()
+            .find_map(|map| map.get(name))
     }
 
     fn insert_in_current_scope(&mut self, key: String, value: Symbol) {
@@ -115,8 +119,41 @@ impl TypeChecker {
         todo!()
     }
 
-    fn check_expr(&mut self, expr: &Expr) {
-        todo!()
+    fn check_expr(&mut self, expr: &Expr) -> Option<Type> {
+        match expr {
+            Expr::Literal(lit) => Some(match lit {
+                Literal::Integer(_) => Type::Integer,
+                Literal::Double(_) => Type::Double,
+                Literal::String(_) => Type::String,
+                Literal::Boolean(_) => Type::Boolean,
+            }),
+            Expr::Identifier(id) => {
+                let Some(sym) = self.lookup_symbol(id.as_str()) else {
+                    self.errors
+                        .push(TypeError::ExprError(format!("Unknown identifier: {}", id)));
+                    return None;
+                };
+
+                if sym.is_function {
+                    self.errors.push(TypeError::ExprError(format!(
+                        "Identifer {} is a function",
+                        id
+                    )));
+                    return None;
+                }
+
+                Some(sym.symbol_type.clone())
+            }
+            Expr::FunctionCall(func) => {
+                todo!()
+            }
+            Expr::Unary(op, expr) => {
+                todo!()
+            }
+            Expr::Binary(left, op, right) => {
+                todo!()
+            }
+        }
     }
 }
 
@@ -209,5 +246,48 @@ mod type_checker_tests {
                 )))
         );
         assert!(checker.symbol_exists(&String::from("var_2")));
+    }
+
+    #[test]
+    fn check_expr_literal() {
+        let mut checker = TypeChecker {
+            symbol_tables: vec![HashMap::new(), HashMap::new()],
+            errors: Vec::new(),
+        };
+        let expr = Expr::Literal(Literal::Integer(1));
+
+        assert_eq!(checker.check_expr(&expr).unwrap(), Type::Integer);
+    }
+
+    #[test]
+    fn check_expr_identifier() {
+        let mut table = HashMap::new();
+        table.insert(
+            String::from("id_1"),
+            Symbol {
+                symbol_type: Type::Integer,
+                is_function: false,
+            },
+        );
+        table.insert(
+            String::from("id_3"),
+            Symbol {
+                symbol_type: Type::Integer,
+                is_function: true,
+            },
+        );
+        let mut checker = TypeChecker {
+            symbol_tables: vec![table, HashMap::new()],
+            errors: Vec::new(),
+        };
+        let id_1 = Expr::Identifier(String::from("id_1"));
+        let id_2 = Expr::Identifier(String::from("id_2"));
+        let id_3 = Expr::Identifier(String::from("id_3"));
+
+        assert_eq!(checker.check_expr(&id_1).unwrap(), Type::Integer);
+        assert_eq!(checker.check_expr(&id_2), None);
+        assert!(checker.errors.contains(&TypeError::ExprError(String::from("Unknown identifier: id_2"))));
+        assert_eq!(checker.check_expr(&id_3), None);
+        assert!(checker.errors.contains(&TypeError::ExprError(String::from("Identifer id_3 is a function"))));
     }
 }
