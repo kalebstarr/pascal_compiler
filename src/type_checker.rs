@@ -109,7 +109,18 @@ impl TypeChecker {
         }
 
         if let Some(expr) = &variable.expr {
-            self.check_expr(&expr);
+            let expr_type = self.check_expr(&expr);
+            if let Some(typ) = expr_type {
+                if !match (&variable.typ, &typ) {
+                    (Type::Double, Type::Integer) => true,
+                    (a, b) => a == b,
+                } {
+                    self.errors.push(TypeError::VariableError(format!(
+                        "Type mismatch for {}. Expected {:?}, found {:?}",
+                        variable.identifier, &variable.typ, &typ
+                    )));
+                }
+            }
         }
     }
 
