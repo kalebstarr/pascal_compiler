@@ -1,5 +1,6 @@
 use crate::ast::{
-    Expr, FunctionDeclaration, Header, Literal, Program, Statement, Type, VariableDeclaration,
+    Expr, FunctionCall, FunctionDeclaration, Header, Literal, Program, Statement, Type,
+    VariableDeclaration,
 };
 use std::{collections::HashMap, path::Path};
 
@@ -144,8 +145,28 @@ impl TypeChecker {
 
                 Some(sym.symbol_type.clone())
             }
-            Expr::FunctionCall(func) => {
-                todo!()
+            Expr::FunctionCall(func_call) => {
+                for arg in &func_call.arguments {
+                    self.check_expr(&arg);
+                }
+
+                let Some(sym) = self.lookup_symbol(func_call.identifier.as_str()) else {
+                    self.errors.push(TypeError::ExprError(format!(
+                        "Unknown function: {}",
+                        func_call.identifier
+                    )));
+                    return None;
+                };
+
+                if !sym.is_function {
+                    self.errors.push(TypeError::ExprError(format!(
+                        "{} is not a function",
+                        func_call.identifier
+                    )));
+                    return None;
+                }
+
+                Some(sym.symbol_type.clone())
             }
             Expr::Unary(op, expr) => {
                 todo!()
@@ -286,8 +307,12 @@ mod type_checker_tests {
 
         assert_eq!(checker.check_expr(&id_1).unwrap(), Type::Integer);
         assert_eq!(checker.check_expr(&id_2), None);
-        assert!(checker.errors.contains(&TypeError::ExprError(String::from("Unknown identifier: id_2"))));
+        assert!(checker.errors.contains(&TypeError::ExprError(String::from(
+            "Unknown identifier: id_2"
+        ))));
         assert_eq!(checker.check_expr(&id_3), None);
-        assert!(checker.errors.contains(&TypeError::ExprError(String::from("Identifer id_3 is a function"))));
+        assert!(checker.errors.contains(&TypeError::ExprError(String::from(
+            "Identifer id_3 is a function"
+        ))));
     }
 }
