@@ -1,6 +1,6 @@
 use crate::ast::{
-    Expr, FunctionCall, FunctionDeclaration, Header, Literal, Program, Statement, Type, UnaryOp,
-    VariableDeclaration,
+    BinaryOp, Expr, FunctionCall, FunctionDeclaration, Header, Literal, Program, Statement, Type,
+    UnaryOp, VariableDeclaration,
 };
 use std::{collections::HashMap, path::Path};
 
@@ -188,11 +188,10 @@ impl TypeChecker {
                         }
                     }
                     UnaryOp::Pos | UnaryOp::Neg => {
-                        if !matches!(inner, Type::Integer | Type::Double) {
+                        if Self::is_num(&inner) {
                             self.errors.push(TypeError::ExprError(format!(
                                 "Expected numeric value for unary operator {:?}. Found {:?}",
-                                op,
-                                inner
+                                op, inner
                             )));
                             return None;
                         } else {
@@ -202,9 +201,108 @@ impl TypeChecker {
                 }
             }
             Expr::Binary(left, op, right) => {
-                todo!()
+                let left_inner = self.check_expr(&left);
+                let right_inner = self.check_expr(&right);
+
+                let (Some(left_inner), Some(right_inner)) = (left_inner, right_inner) else {
+                    return None;
+                };
+
+                match op {
+                    BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul => {
+                        if Self::is_num(&left_inner) && Self::is_num(&right_inner) {
+                            Some(Self::num_result(&left_inner, &right_inner))
+                        } else {
+                            self.errors.push(TypeError::ExprError(format!(
+                                "{:?} expected numeric. Found {:?} and {:?}",
+                                op, left_inner, right_inner
+                            )));
+                            None
+                        }
+                    }
+                    BinaryOp::Div => {
+                        if Self::is_num(&left_inner) && Self::is_num(&right_inner) {
+                            Some(Type::Double)
+                        } else {
+                            self.errors.push(TypeError::ExprError(format!(
+                                "'/' expected numeric. Found {:?} and {:?}",
+                                left_inner, right_inner
+                            )));
+                            None
+                        }
+                    }
+                    BinaryOp::Mod => {
+                        if left_inner == Type::Integer && right_inner == Type::Integer {
+                            Some(Type::Integer)
+                        } else {
+                            self.errors.push(TypeError::ExprError(format!(
+                                "'mod' expected integer. Found {:?} and {:?}",
+                                left_inner, right_inner
+                            )));
+                            None
+                        }
+                    }
+                    BinaryOp::And | BinaryOp::Or => {
+                        if left_inner == Type::Boolean && right_inner == Type::Boolean {
+                            Some(Type::Boolean)
+                        } else {
+                            self.errors.push(TypeError::ExprError(format!(
+                                "{:?} expected boolean. Found {:?} and {:?}",
+                                op, left_inner, right_inner
+                            )));
+                            None
+                        }
+                    }
+                    BinaryOp::Eq | BinaryOp::Neq => {
+                        if Self::eq_comp(&left_inner, &right_inner) {
+                            Some(Type::Boolean)
+                        } else {
+                            self.errors.push(TypeError::ExprError(format!(
+                                "{:?} cannot compare. Found {:?} and {:?}",
+                                op, left_inner, right_inner
+                            )));
+                            None
+                        }
+                    }
+                    BinaryOp::Lt | BinaryOp::Gt | BinaryOp::Le | BinaryOp::Ge => {
+                        if Self::order_comp(&left_inner, &right_inner) {
+                            Some(Type::Boolean)
+                        } else {
+                            self.errors.push(TypeError::ExprError(format!(
+                                "{:?} cannot compare. Found {:?} and {:?}",
+                                op, left_inner, right_inner
+                            )));
+                            None
+                        }
+                    }
+                }
             }
         }
+    }
+
+    fn is_num(typ: &Type) -> bool {
+        matches!(typ, Type::Integer | Type::Double)
+    }
+
+    fn num_result(left: &Type, right: &Type) -> Type {
+        if *left == Type::Double || *right == Type::Double {
+            Type::Double
+        } else {
+            Type::Integer
+        }
+    }
+
+    fn eq_comp(left: &Type, right: &Type) -> bool {
+        if Self::is_num(left) && Self::is_num(right) {
+            true
+        } else {
+            *left == *right
+        }
+    }
+
+    fn order_comp(left: &Type, right: &Type) -> bool {
+        (Self::is_num(left) && Self::is_num(right))
+            || (*left == Type::String && *right == Type::String)
     }
 }
 
