@@ -177,12 +177,44 @@ impl TypeChecker {
         for stmt in &function.body {
             self.check_statement(stmt);
         }
-        
+
         self.pop_scope();
     }
 
     fn check_statement(&mut self, statement: &Statement) {
-        todo!()
+        match statement {
+            Statement::VariableAssignment(assign) => {
+                let Some(sym) = self.lookup_symbol(assign.identifier.as_str()) else {
+                    self.errors.push(TypeError::VariableError(format!(
+                        "Unknown variable: {}",
+                        assign.identifier
+                    )));
+                    return;
+                };
+
+                let Symbol::Var { typ: left_type } = sym else {
+                    self.errors.push(TypeError::VariableError(format!(
+                        "{} is not a variable",
+                        assign.identifier
+                    )));
+                    return;
+                };
+
+                let Some(right_type) = self.check_expr(&assign.expr) else {
+                    return;
+                };
+
+                if !(left_type == &right_type
+                    || (*left_type == Type::Double && right_type == Type::Integer))
+                {
+                    self.errors.push(TypeError::VariableError(format!(
+                        "Type mismatch in assignment to {}. Expected {:?}, found {:?}",
+                        assign.identifier, left_type, right_type
+                    )));
+                    return;
+                }
+            }
+        }
     }
 
     fn check_expr(&mut self, expr: &Expr) -> Option<Type> {
