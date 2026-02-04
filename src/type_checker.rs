@@ -1,6 +1,6 @@
 use crate::ast::{
-    BinaryOp, Expr, FunctionCall, FunctionDeclaration, Header, Literal, Program, Statement, Type,
-    UnaryOp, VariableDeclaration,
+    BinaryOp, Expr, FunctionCall, FunctionDeclaration, Header, Literal, Parameter, Program,
+    Statement, Type, UnaryOp, VariableDeclaration,
 };
 use std::{collections::HashMap, path::Path};
 
@@ -156,7 +156,29 @@ impl TypeChecker {
     }
 
     fn check_function(&mut self, function: &FunctionDeclaration) {
-        todo!()
+        self.push_scope();
+
+        for Parameter { identifier, typ } in &function.parameter_list {
+            if self.symbol_exists_in_current_scope(identifier.as_str()) {
+                self.errors.push(TypeError::VariableError(format!(
+                    "Duplicate parameter {} in function {}",
+                    identifier, function.identifier
+                )));
+                continue;
+            }
+
+            self.insert_in_current_scope(identifier.clone(), Symbol::Var { typ: typ.clone() });
+        }
+
+        for v in &function.variable_declaration {
+            self.check_variable(v);
+        }
+
+        for stmt in &function.body {
+            self.check_statement(stmt);
+        }
+        
+        self.pop_scope();
     }
 
     fn check_statement(&mut self, statement: &Statement) {
@@ -439,7 +461,10 @@ mod type_checker_tests {
         table.insert(String::from("id_1"), Symbol::Var { typ: Type::Integer });
         table.insert(
             String::from("id_3"),
-            Symbol::Func { params: Vec::new(), ret: Some(Type::Integer) }
+            Symbol::Func {
+                params: Vec::new(),
+                ret: Some(Type::Integer),
+            },
         );
         let mut checker = TypeChecker {
             symbol_tables: vec![table, HashMap::new()],
