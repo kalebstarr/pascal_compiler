@@ -206,11 +206,23 @@ impl TypeChecker {
                     }
                     Some(Symbol::Var { typ }) => typ.clone(),
                     Some(Symbol::Func { .. }) => {
-                        self.errors.push(TypeError::VariableError(format!(
-                            "{} is not a variable",
-                            assign.identifier
-                        )));
-                        return;
+                        if let Some((func_name, ret_type)) = &self.current_function {
+                            if *func_name == assign.identifier {
+                                ret_type.clone()
+                            } else {
+                                self.errors.push(TypeError::VariableError(format!(
+                                    "Cannot assign to function {} inside function {}",
+                                    assign.identifier, func_name,
+                                )));
+                                return;
+                            }
+                        } else {
+                            self.errors.push(TypeError::VariableError(format!(
+                                "Cannot assign to function {} (not inside function scope)",
+                                assign.identifier
+                            )));
+                            return;
+                        }
                     }
                 };
 
