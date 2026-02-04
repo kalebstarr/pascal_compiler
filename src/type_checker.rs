@@ -251,7 +251,14 @@ impl TypeChecker {
 
                 self.check_statement(&while_stmt.statement);
             }
+            Statement::FunctionCall(call) => {
+                self.check_call(&call);
+            }
         }
+    }
+
+    fn check_call(&self, call: &FunctionCall) {
+        todo!()
     }
 
     fn check_expr(&mut self, expr: &Expr) -> Option<Type> {
