@@ -219,6 +219,24 @@ impl TypeChecker {
                     self.check_statement(s);
                 }
             }
+            Statement::IfElse(if_else) => {
+                let Some(cond_type) = self.check_expr(&if_else.expr) else {
+                    return;
+                };
+
+                if cond_type != Type::Boolean {
+                    self.errors.push(TypeError::ExprError(format!(
+                        "if condition must be boolean, found {:?}",
+                        cond_type
+                    )));
+                }
+
+                self.check_statement(&if_else.if_statement);
+
+                if let Some(else_stmt) = if_else.else_statement {
+                    self.check_statement(&else_stmt);
+                }
+            }
         }
     }
 
