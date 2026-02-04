@@ -237,6 +237,20 @@ impl TypeChecker {
                     self.check_statement(&else_stmt);
                 }
             }
+            Statement::While(while_stmt) => {
+                let Some(cond_type) = self.check_expr(&while_stmt.expr) else {
+                    return;
+                };
+
+                if cond_type != Type::Boolean {
+                    self.errors.push(TypeError::ExprError(format!(
+                        "while condition must be boolean, found {:?}",
+                        cond_type
+                    )));
+                }
+
+                self.check_statement(&while_stmt.statement);
+            }
         }
     }
 
