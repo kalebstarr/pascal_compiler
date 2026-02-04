@@ -4,9 +4,15 @@ use crate::ast::{
 };
 use std::{collections::HashMap, path::Path};
 
-struct Symbol {
-    symbol_type: Type,
-    is_function: bool,
+#[derive(Debug, Clone, PartialEq)]
+enum Symbol {
+    Var {
+        typ: Type,
+    },
+    Func {
+        params: Vec<Type>,
+        ret: Option<Type>,
+    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -70,6 +76,7 @@ impl TypeChecker {
             self.check_variable(&var);
         }
 
+        self.declare_functions(&program.functions);
         for func in &program.functions {
             self.check_function(&func);
         }
@@ -105,9 +112,8 @@ impl TypeChecker {
         } else {
             self.insert_in_current_scope(
                 variable.identifier.clone(),
-                Symbol {
-                    symbol_type: variable.typ.clone(),
-                    is_function: false,
+                Symbol::Var {
+                    typ: variable.typ.clone(),
                 },
             );
         }
@@ -125,6 +131,27 @@ impl TypeChecker {
                     )));
                 }
             }
+        }
+    }
+
+    fn declare_functions(&mut self, functions: &[FunctionDeclaration]) {
+        for f in functions {
+            if self.symbol_exists_in_current_scope(&f.identifier.as_str()) {
+                self.errors.push(TypeError::VariableError(format!(
+                    "Function already exists: {}",
+                    f.identifier
+                )));
+                continue;
+            }
+
+            let params = f.parameter_list.iter().map(|p| p.typ.clone()).collect();
+            self.insert_in_current_scope(
+                f.identifier.clone(),
+                Symbol::Func {
+                    params,
+                    ret: f.return_type.clone(),
+                },
+            );
         }
     }
 
@@ -151,15 +178,16 @@ impl TypeChecker {
                     return None;
                 };
 
-                if sym.is_function {
-                    self.errors.push(TypeError::ExprError(format!(
-                        "Identifer {} is a function",
-                        id
-                    )));
-                    return None;
+                match sym {
+                    Symbol::Var { typ } => Some(typ.clone()),
+                    Symbol::Func { .. } => {
+                        self.errors.push(TypeError::ExprError(format!(
+                            "Identifer {} is a function",
+                            id
+                        )));
+                        None
+                    }
                 }
-
-                Some(sym.symbol_type.clone())
             }
             Expr::FunctionCall(func_call) => {
                 for arg in &func_call.arguments {
@@ -174,15 +202,16 @@ impl TypeChecker {
                     return None;
                 };
 
-                if !sym.is_function {
-                    self.errors.push(TypeError::ExprError(format!(
-                        "{} is not a function",
-                        func_call.identifier
-                    )));
-                    return None;
+                match sym {
+                    Symbol::Var { typ } => Some(typ.clone()),
+                    Symbol::Func { .. } => {
+                        self.errors.push(TypeError::ExprError(format!(
+                            "{} is not a function",
+                            func_call.identifier
+                        )));
+                        None
+                    }
                 }
-
-                Some(sym.symbol_type.clone())
             }
             Expr::Unary(op, expr) => {
                 let inner = self.check_expr(&expr);
@@ -340,21 +369,9 @@ mod type_checker_tests {
     #[test]
     fn symbol_exists() {
         let mut table_1 = HashMap::new();
-        table_1.insert(
-            String::from("var_1"),
-            Symbol {
-                symbol_type: Type::Integer,
-                is_function: false,
-            },
-        );
+        table_1.insert(String::from("var_1"), Symbol::Var { typ: Type::Integer });
         let mut table_2 = HashMap::new();
-        table_2.insert(
-            String::from("var_2"),
-            Symbol {
-                symbol_type: Type::Boolean,
-                is_function: true,
-            },
-        );
+        table_2.insert(String::from("var_2"), Symbol::Var { typ: Type::Boolean });
 
         let mut checker = TypeChecker {
             symbol_tables: vec![table_1, table_2],
@@ -370,13 +387,7 @@ mod type_checker_tests {
     #[test]
     fn variable_without_expr() {
         let mut table = HashMap::new();
-        table.insert(
-            String::from("var_1"),
-            Symbol {
-                symbol_type: Type::Integer,
-                is_function: false,
-            },
-        );
+        table.insert(String::from("var_1"), Symbol::Var { typ: Type::Integer });
 
         let mut checker = TypeChecker {
             symbol_tables: vec![table, HashMap::new()],
@@ -425,19 +436,10 @@ mod type_checker_tests {
     #[test]
     fn check_expr_identifier() {
         let mut table = HashMap::new();
-        table.insert(
-            String::from("id_1"),
-            Symbol {
-                symbol_type: Type::Integer,
-                is_function: false,
-            },
-        );
+        table.insert(String::from("id_1"), Symbol::Var { typ: Type::Integer });
         table.insert(
             String::from("id_3"),
-            Symbol {
-                symbol_type: Type::Integer,
-                is_function: true,
-            },
+            Symbol::Func { params: Vec::new(), ret: Some(Type::Integer) }
         );
         let mut checker = TypeChecker {
             symbol_tables: vec![table, HashMap::new()],
