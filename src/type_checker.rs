@@ -25,6 +25,7 @@ pub enum TypeError {
 pub struct TypeChecker {
     symbol_tables: Vec<HashMap<String, Symbol>>,
     pub errors: Vec<TypeError>,
+    current_function: Option<(String, Type)>,
 }
 
 // TODO: Improve error printing and error messages
@@ -33,6 +34,7 @@ impl TypeChecker {
         let mut t = TypeChecker {
             symbol_tables: Vec::new(),
             errors: Vec::new(),
+            current_function: None,
         };
         t.push_scope();
         t
@@ -156,6 +158,14 @@ impl TypeChecker {
     }
 
     fn check_function(&mut self, function: &FunctionDeclaration) {
+        let prev_function = self.current_function.clone();
+
+        if let Some(ret_type) = &function.return_type {
+            self.current_function = Some((function.identifier.clone(), ret_type.clone()));
+        } else {
+            self.current_function = None;
+        }
+
         self.push_scope();
 
         for Parameter { identifier, typ } in &function.parameter_list {
@@ -179,6 +189,8 @@ impl TypeChecker {
         }
 
         self.pop_scope();
+
+        self.current_function = prev_function;
     }
 
     fn check_statement(&mut self, statement: &Statement) {
@@ -345,9 +357,7 @@ impl TypeChecker {
                     }
                 }
             }
-            Expr::FunctionCall(func_call) => {
-                self.check_call(func_call, CallContext::Expr)
-            }
+            Expr::FunctionCall(func_call) => self.check_call(func_call, CallContext::Expr),
             Expr::Unary(op, expr) => {
                 let inner = self.check_expr(&expr);
                 let Some(inner) = inner else {
@@ -521,6 +531,7 @@ mod type_checker_tests {
         let mut checker = TypeChecker {
             symbol_tables: vec![table_1, table_2],
             errors: Vec::new(),
+            current_function: None,
         };
 
         assert!(checker.symbol_exists("var_1"));
@@ -537,6 +548,7 @@ mod type_checker_tests {
         let mut checker = TypeChecker {
             symbol_tables: vec![table, HashMap::new()],
             errors: Vec::new(),
+            current_function: None,
         };
 
         checker.check_variable(&VariableDeclaration {
@@ -572,6 +584,7 @@ mod type_checker_tests {
         let mut checker = TypeChecker {
             symbol_tables: vec![HashMap::new(), HashMap::new()],
             errors: Vec::new(),
+            current_function: None,
         };
         let expr = Expr::Literal(Literal::Integer(1));
 
@@ -592,6 +605,7 @@ mod type_checker_tests {
         let mut checker = TypeChecker {
             symbol_tables: vec![table, HashMap::new()],
             errors: Vec::new(),
+            current_function: None,
         };
         let id_1 = Expr::Identifier(String::from("id_1"));
         let id_2 = Expr::Identifier(String::from("id_2"));
