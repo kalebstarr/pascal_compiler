@@ -214,6 +214,11 @@ impl TypeChecker {
                     return;
                 }
             }
+            Statement::Block(stmts) => {
+                for s in stmts {
+                    self.check_statement(s);
+                }
+            }
         }
     }
 
