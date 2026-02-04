@@ -191,23 +191,22 @@ impl TypeChecker {
                             assign.identifier
                         )));
                         return;
-                    },
+                    }
                     Some(Symbol::Var { typ }) => typ.clone(),
-                    Some(Symbol::Func { .. }) =>  {
+                    Some(Symbol::Func { .. }) => {
                         self.errors.push(TypeError::VariableError(format!(
                             "{} is not a variable",
                             assign.identifier
                         )));
                         return;
-}
+                    }
                 };
 
                 let Some(right_type) = self.check_expr(&assign.expr) else {
                     return;
                 };
 
-                if !Self::assignable(&left_type, &right_type)
-                {
+                if !Self::assignable(&left_type, &right_type) {
                     self.errors.push(TypeError::VariableError(format!(
                         "Type mismatch in assignment to {}. Expected {:?}, found {:?}",
                         assign.identifier, left_type, right_type
@@ -253,13 +252,71 @@ impl TypeChecker {
                 self.check_statement(&while_stmt.statement);
             }
             Statement::FunctionCall(call) => {
-                self.check_call(&call);
+                self.check_call(&call, CallContext::Statement);
             }
         }
     }
 
-    fn check_call(&self, call: &FunctionCall) {
-        todo!()
+    fn check_call(&mut self, call: &FunctionCall, context: CallContext) -> Option<Type> {
+        let mut arg_types = Vec::with_capacity(call.arguments.len());
+        for a in &call.arguments {
+            let Some(t) = self.check_expr(a) else {
+                return None;
+            };
+            arg_types.push(t);
+        }
+
+        let (params, ret) = match self.lookup_symbol(call.identifier.as_str()) {
+            None => {
+                self.errors.push(TypeError::ExprError(format!(
+                    "Unknown function: {}",
+                    call.identifier
+                )));
+                return None;
+            }
+            Some(Symbol::Func { params, ret }) => (params.clone(), ret.clone()),
+            Some(_) => {
+                self.errors.push(TypeError::ExprError(format!(
+                    "{} is not a function",
+                    call.identifier
+                )));
+                return None;
+            }
+        };
+
+        if params.len() != arg_types.len() {
+            self.errors.push(TypeError::ExprError(format!(
+                "Wrong number of arguments for {}. Expected {}, found {}",
+                call.identifier,
+                params.len(),
+                arg_types.len(),
+            )));
+            return None;
+        }
+
+        for (i, (p, a)) in params.iter().zip(arg_types.iter()).enumerate() {
+            if !Self::assignable(p, a) {
+                self.errors.push(TypeError::ExprError(format!(
+                    "Argument {} of {}: expected {:?}, found {:?}",
+                    i + 1,
+                    call.identifier,
+                    p,
+                    a,
+                )));
+            }
+        }
+
+        match (context, ret) {
+            (CallContext::Statement, t) => t,
+            (CallContext::Expr, Some(t)) => Some(t.clone()),
+            (CallContext::Expr, None) => {
+                self.errors.push(TypeError::ExprError(format!(
+                    "Procedure {} cannot be used as an expression",
+                    call.identifier
+                )));
+                None
+            }
+        }
     }
 
     fn check_expr(&mut self, expr: &Expr) -> Option<Type> {
@@ -289,28 +346,7 @@ impl TypeChecker {
                 }
             }
             Expr::FunctionCall(func_call) => {
-                for arg in &func_call.arguments {
-                    self.check_expr(&arg);
-                }
-
-                let Some(sym) = self.lookup_symbol(func_call.identifier.as_str()) else {
-                    self.errors.push(TypeError::ExprError(format!(
-                        "Unknown function: {}",
-                        func_call.identifier
-                    )));
-                    return None;
-                };
-
-                match sym {
-                    Symbol::Var { typ } => Some(typ.clone()),
-                    Symbol::Func { .. } => {
-                        self.errors.push(TypeError::ExprError(format!(
-                            "{} is not a function",
-                            func_call.identifier
-                        )));
-                        None
-                    }
-                }
+                self.check_call(func_call, CallContext::Expr)
             }
             Expr::Unary(op, expr) => {
                 let inner = self.check_expr(&expr);
@@ -450,6 +486,12 @@ impl TypeChecker {
     fn assignable(dst: &Type, src: &Type) -> bool {
         dst == src || (*dst == Type::Double && *src == Type::Integer)
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum CallContext {
+    Expr,
+    Statement,
 }
 
 #[cfg(test)]
