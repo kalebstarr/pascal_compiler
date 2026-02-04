@@ -184,28 +184,29 @@ impl TypeChecker {
     fn check_statement(&mut self, statement: &Statement) {
         match statement {
             Statement::VariableAssignment(assign) => {
-                let Some(sym) = self.lookup_symbol(assign.identifier.as_str()) else {
-                    self.errors.push(TypeError::VariableError(format!(
-                        "Unknown variable: {}",
-                        assign.identifier
-                    )));
-                    return;
-                };
-
-                let Symbol::Var { typ: left_type } = sym else {
-                    self.errors.push(TypeError::VariableError(format!(
-                        "{} is not a variable",
-                        assign.identifier
-                    )));
-                    return;
+                let left_type: Type = match self.lookup_symbol(assign.identifier.as_str()) {
+                    None => {
+                        self.errors.push(TypeError::VariableError(format!(
+                            "Unknown variable: {}",
+                            assign.identifier
+                        )));
+                        return;
+                    },
+                    Some(Symbol::Var { typ }) => typ.clone(),
+                    Some(Symbol::Func { .. }) =>  {
+                        self.errors.push(TypeError::VariableError(format!(
+                            "{} is not a variable",
+                            assign.identifier
+                        )));
+                        return;
+}
                 };
 
                 let Some(right_type) = self.check_expr(&assign.expr) else {
                     return;
                 };
 
-                if !(left_type == &right_type
-                    || (*left_type == Type::Double && right_type == Type::Integer))
+                if !Self::assignable(&left_type, &right_type)
                 {
                     self.errors.push(TypeError::VariableError(format!(
                         "Type mismatch in assignment to {}. Expected {:?}, found {:?}",
@@ -233,7 +234,7 @@ impl TypeChecker {
 
                 self.check_statement(&if_else.if_statement);
 
-                if let Some(else_stmt) = if_else.else_statement {
+                if let Some(else_stmt) = &if_else.else_statement {
                     self.check_statement(&else_stmt);
                 }
             }
@@ -444,6 +445,10 @@ impl TypeChecker {
 
     fn order_comp(left: &Type, right: &Type) -> bool {
         Self::is_num(left) && Self::is_num(right)
+    }
+
+    fn assignable(dst: &Type, src: &Type) -> bool {
+        dst == src || (*dst == Type::Double && *src == Type::Integer)
     }
 }
 
