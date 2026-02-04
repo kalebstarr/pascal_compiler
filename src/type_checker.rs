@@ -44,6 +44,12 @@ impl TypeChecker {
         self.symbol_tables.iter().any(|map| map.contains_key(entry))
     }
 
+    fn symbol_exists_in_current_scope(&self, entry: &str) -> bool {
+        self.symbol_tables
+            .last()
+            .is_some_and(|map| map.contains_key(entry))
+    }
+
     fn lookup_symbol(&self, name: &str) -> Option<&Symbol> {
         self.symbol_tables
             .iter()
@@ -74,8 +80,6 @@ impl TypeChecker {
     }
 
     fn check_header(&mut self, header: &Header, program_path: &Path) {
-        println!("{:?}", program_path);
-
         // TODO: Redo better
         if let Some(file_os_str) = program_path.file_stem()
             && let Some(file_str) = file_os_str.to_str()
@@ -93,7 +97,7 @@ impl TypeChecker {
     }
 
     fn check_variable(&mut self, variable: &VariableDeclaration) {
-        if self.symbol_exists(variable.identifier.as_str()) {
+        if self.symbol_exists_in_current_scope(variable.identifier.as_str()) {
             self.errors.push(TypeError::VariableError(format!(
                 "Variable already exists: {}",
                 variable.identifier
@@ -199,7 +203,7 @@ impl TypeChecker {
                         }
                     }
                     UnaryOp::Pos | UnaryOp::Neg => {
-                        if Self::is_num(&inner) {
+                        if !Self::is_num(&inner) {
                             self.errors.push(TypeError::ExprError(format!(
                                 "Expected numeric value for unary operator {:?}. Found {:?}",
                                 op, inner
@@ -312,8 +316,7 @@ impl TypeChecker {
     }
 
     fn order_comp(left: &Type, right: &Type) -> bool {
-        (Self::is_num(left) && Self::is_num(right))
-            || (*left == Type::String && *right == Type::String)
+        Self::is_num(left) && Self::is_num(right)
     }
 }
 
