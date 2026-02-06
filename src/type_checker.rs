@@ -874,9 +874,61 @@ mod type_checker_tests {
                 ",
             );
             checker.check_program(&decl.unwrap(), Path::new("DuplicateIdentifier2.pas"));
-            for i in &checker.errors {
-                println!("{:?}", i);
-            }
+            assert!(checker.errors.len() == 1);
+        }
+
+        #[test]
+        fn func_wrong() {
+            let parser = grammar::ProgramParser::new();
+
+            let mut checker = TypeChecker::new();
+            let decl = parser.parse(
+                "
+                program WrongFunctionArgs;
+                function Add(a, b : integer) : integer;
+                begin
+                  Add := a + b
+                end;
+                begin
+                  writeln(Add(1, true))
+                end.
+                ",
+            );
+            checker.check_program(&decl.unwrap(), Path::new("WrongFunctionArgs.pas"));
+            assert!(checker.errors.len() == 1);
+
+            let mut checker = TypeChecker::new();
+            let decl = parser.parse(
+                "
+                program WrongArgNumber;
+                function Add(a, b : integer) : integer;
+                begin
+                  Add := a + b
+                end;
+                begin
+                  writeln(Add(1))
+                end.
+                ",
+            );
+            checker.check_program(&decl.unwrap(), Path::new("WrongArgNumber.pas"));
+            assert!(checker.errors.len() == 1);
+
+            let mut checker = TypeChecker::new();
+            let decl = parser.parse(
+                "
+                program BoolFunctionToInt;
+                var
+                  x : integer;
+                function IsTrue() : boolean;
+                begin
+                  IsTrue := true
+                end;
+                begin
+                  x := IsTrue()
+                end.    
+                ",
+            );
+            checker.check_program(&decl.unwrap(), Path::new("BoolFunctionToInt.pas"));
             assert!(checker.errors.len() == 1);
         }
     }
