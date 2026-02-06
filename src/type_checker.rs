@@ -653,10 +653,9 @@ mod type_checker_tests {
         #[test]
         fn wrong_types_arithmetic() {
             let parser = grammar::ProgramParser::new();
-
-            let mut checker = TypeChecker::new();
-            let arithmetic = parser.parse(
-                "
+            let programs = vec![
+                (
+                    "
                 program WrongTypesInArithmetic;
                 var
                   x : integer;
@@ -664,16 +663,10 @@ mod type_checker_tests {
                   x := true + 1
                 end.
                 ",
-            );
-            checker.check_program(
-                &arithmetic.unwrap(),
-                Path::new("WrongTypesInArithmetic.pas"),
-            );
-            assert!(checker.errors.len() == 1);
-
-            let mut checker = TypeChecker::new();
-            let arithmetic = parser.parse(
-                "
+                    "WrongTypesInArithmetic.pas",
+                ),
+                (
+                    "
                 program WrongTypesInArithmetic2;
                 var
                   x : integer;
@@ -681,16 +674,10 @@ mod type_checker_tests {
                   x := 'hello' + 1
                 end.
                 ",
-            );
-            checker.check_program(
-                &arithmetic.unwrap(),
-                Path::new("WrongTypesInArithmetic2.pas"),
-            );
-            assert!(checker.errors.len() == 1);
-
-            let mut checker = TypeChecker::new();
-            let arithmetic = parser.parse(
-                "
+                    "WrongTypesInArithmetic2.pas",
+                ),
+                (
+                    "
                 program WrongTypesInArithmetic3;
                 var
                   x : integer;
@@ -698,21 +685,24 @@ mod type_checker_tests {
                   x := true * false
                 end.
                 ",
-            );
-            checker.check_program(
-                &arithmetic.unwrap(),
-                Path::new("WrongTypesInArithmetic3.pas"),
-            );
-            assert!(checker.errors.len() == 1);
+                    "WrongTypesInArithmetic3.pas",
+                ),
+            ];
+
+            for (prog, name) in programs {
+                let mut checker = TypeChecker::new();
+                let arithmetic = parser.parse(prog);
+                checker.check_program(&arithmetic.unwrap(), Path::new(name));
+                assert!(checker.errors.len() == 1);
+            }
         }
 
         #[test]
         fn wrong_types_logic() {
             let parser = grammar::ProgramParser::new();
-
-            let mut checker = TypeChecker::new();
-            let logic = parser.parse(
-                "
+            let programs = vec![
+                (
+                    "
                 program WrongTypesInLogic;
                 var
                   b : boolean;
@@ -720,13 +710,10 @@ mod type_checker_tests {
                   b := 1 and 2
                 end.
                 ",
-            );
-            checker.check_program(&logic.unwrap(), Path::new("WrongTypesInLogic.pas"));
-            assert!(checker.errors.len() == 1);
-
-            let mut checker = TypeChecker::new();
-            let logic = parser.parse(
-                "
+                    "WrongTypesInLogic.pas",
+                ),
+                (
+                    "
                 program WrongTypesInLogic2;
                 var
                   b : boolean;
@@ -734,13 +721,10 @@ mod type_checker_tests {
                   b := 1.0 or 2.0
                 end.
                 ",
-            );
-            checker.check_program(&logic.unwrap(), Path::new("WrongTypesInLogic2.pas"));
-            assert!(checker.errors.len() == 1);
-
-            let mut checker = TypeChecker::new();
-            let logic = parser.parse(
-                "
+                    "WrongTypesInLogic2.pas",
+                ),
+                (
+                    "
                 program WrongTypesInLogic3;
                 var
                   b : boolean;
@@ -748,18 +732,24 @@ mod type_checker_tests {
                   b := not 1
                 end.                
                 ",
-            );
-            checker.check_program(&logic.unwrap(), Path::new("WrongTypesInLogic3.pas"));
-            assert!(checker.errors.len() == 1);
+                    "WrongTypesInLogic3.pas",
+                ),
+            ];
+
+            for (prog, name) in programs {
+                let mut checker = TypeChecker::new();
+                let logic = parser.parse(prog);
+                checker.check_program(&logic.unwrap(), Path::new(name));
+                assert!(checker.errors.len() == 1);
+            }
         }
 
         #[test]
         fn invalid_assigns() {
             let parser = grammar::ProgramParser::new();
-
-            let mut checker = TypeChecker::new();
-            let int_expr_to_bool = parser.parse(
-                "
+            let programs = vec![
+                (
+                    "
                 program AssgningIntExprToBoolVar;
                 var
                   b : boolean;
@@ -767,16 +757,10 @@ mod type_checker_tests {
                   b := 5 + 3
                 end.
                 ",
-            );
-            checker.check_program(
-                &int_expr_to_bool.unwrap(),
-                Path::new("AssgningIntExprToBoolVar.pas"),
-            );
-            assert!(checker.errors.len() == 1);
-
-            let mut checker = TypeChecker::new();
-            let bool_expr_to_itn = parser.parse(
-                "
+                    "AssgningIntExprToBoolVar.pas",
+                ),
+                (
+                    "
                 program AssgningBoolExprToIntVar;
                 var
                   x : integer;
@@ -784,16 +768,10 @@ mod type_checker_tests {
                   x := true and false
                 end.
                 ",
-            );
-            checker.check_program(
-                &bool_expr_to_itn.unwrap(),
-                Path::new("AssgningBoolExprToIntVar.pas"),
-            );
-            assert!(checker.errors.len() == 1);
-
-            let mut checker = TypeChecker::new();
-            let string_expr_to_bool = parser.parse(
-                "
+                    "AssgningBoolExprToIntVar.pas",
+                ),
+                (
+                    "
                 program AssgningStringExprToBoolVar;
                 var
                   b : boolean;
@@ -801,21 +779,24 @@ mod type_checker_tests {
                   b := 'hello'
                 end.
                 ",
-            );
-            checker.check_program(
-                &string_expr_to_bool.unwrap(),
-                Path::new("AssgningStringExprToBoolVar.pas"),
-            );
-            assert!(checker.errors.len() == 1);
+                    "AssgningStringExprToBoolVar.pas",
+                ),
+            ];
+
+            for (prog, name) in programs {
+                let mut checker = TypeChecker::new();
+                let int_expr_to_bool = parser.parse(prog);
+                checker.check_program(&int_expr_to_bool.unwrap(), Path::new(name));
+                assert!(checker.errors.len() == 1);
+            }
         }
 
         #[test]
         fn declarations() {
             let parser = grammar::ProgramParser::new();
-
-            let mut checker = TypeChecker::new();
-            let decl = parser.parse(
-                "
+            let programs = vec![
+                (
+                    "
                 program NotDeclared;
                 var
                   x : integer;
@@ -823,33 +804,34 @@ mod type_checker_tests {
                   x := y + 1
                 end.
                 ",
-            );
-            checker.check_program(&decl.unwrap(), Path::new("NotDeclared.pas"));
-            assert!(checker.errors.len() == 1);
-
-            let mut checker = TypeChecker::new();
-            let decl = parser.parse(
-                "
+                    "NotDeclared.pas",
+                ),
+                (
+                    "
                 program UndeclaredVariable;
                 begin
                   x := 5
                 end.
                 ",
-            );
-            checker.check_program(&decl.unwrap(), Path::new("UndeclaredVariable.pas"));
-            assert!(checker.errors.len() == 1);
-
-            let mut checker = TypeChecker::new();
-            let decl = parser.parse(
-                "
+                    "UndeclaredVariable.pas",
+                ),
+                (
+                    "
                 program UndeclaredFunctionCall;
                 begin
                   writeln(Foo(5))
                 end.
                 ",
-            );
-            checker.check_program(&decl.unwrap(), Path::new("UndeclaredFunctionCall.pas"));
-            assert!(checker.errors.len() == 1);
+                    "UndeclaredFunctionCall.pas",
+                ),
+            ];
+
+            for (prog, name) in programs {
+                let mut checker = TypeChecker::new();
+                let decl = parser.parse(prog);
+                checker.check_program(&decl.unwrap(), Path::new(name));
+                assert!(checker.errors.len() == 1);
+            }
         }
 
         #[test]
@@ -880,10 +862,9 @@ mod type_checker_tests {
         #[test]
         fn func_wrong() {
             let parser = grammar::ProgramParser::new();
-
-            let mut checker = TypeChecker::new();
-            let decl = parser.parse(
-                "
+            let programs = vec![
+                (
+                    "
                 program WrongFunctionArgs;
                 function Add(a, b : integer) : integer;
                 begin
@@ -893,13 +874,10 @@ mod type_checker_tests {
                   writeln(Add(1, true))
                 end.
                 ",
-            );
-            checker.check_program(&decl.unwrap(), Path::new("WrongFunctionArgs.pas"));
-            assert!(checker.errors.len() == 1);
-
-            let mut checker = TypeChecker::new();
-            let decl = parser.parse(
-                "
+                    "WrongFunctionArgs.pas",
+                ),
+                (
+                    "
                 program WrongArgNumber;
                 function Add(a, b : integer) : integer;
                 begin
@@ -909,13 +887,10 @@ mod type_checker_tests {
                   writeln(Add(1))
                 end.
                 ",
-            );
-            checker.check_program(&decl.unwrap(), Path::new("WrongArgNumber.pas"));
-            assert!(checker.errors.len() == 1);
-
-            let mut checker = TypeChecker::new();
-            let decl = parser.parse(
-                "
+                    "WrongArgNumber.pas",
+                ),
+                (
+                    "
                 program BoolFunctionToInt;
                 var
                   x : integer;
@@ -927,9 +902,16 @@ mod type_checker_tests {
                   x := IsTrue()
                 end.    
                 ",
-            );
-            checker.check_program(&decl.unwrap(), Path::new("BoolFunctionToInt.pas"));
-            assert!(checker.errors.len() == 1);
+                    "BoolFunctionToInt.pas",
+                ),
+            ];
+
+            for (prog, name) in programs {
+                let mut checker = TypeChecker::new();
+                let decl = parser.parse(prog);
+                checker.check_program(&decl.unwrap(), Path::new(name));
+                assert!(checker.errors.len() == 1);
+            }
         }
     }
 }
