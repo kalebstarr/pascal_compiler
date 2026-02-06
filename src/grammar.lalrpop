@@ -154,14 +154,18 @@ pub VariableAssignment: VariableAssignment = {
     },
 };
 
-// TODO: Allow semicolons as separators.
 pub Block: Vec<Statement> = {
-    "begin" <mut v: (<Statement> ";")*> <e: Statement?> "end" => {
-        if let Some(s) = e {
-            v.push(s);
-        }
+    "begin" <SeparatorList> "end",
+};
+
+SeparatorList: Vec<Statement> = {
+    <mut v: SeparatorList> ";" <e: Statement> => {
+        v.push(e);
         v
     },
+    <v: SeparatorList> ";" => v,
+    <e: Statement> => vec![e],
+    () => vec![],
 };
 
 pub FunctionCall: FunctionCall = {

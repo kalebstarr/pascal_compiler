@@ -931,4 +931,23 @@ mod test_grammar {
 
         assert!(fibonacci.is_ok());
     }
+
+    #[test]
+    fn semicolon_as_separator() {
+        let parser = grammar::ProgramParser::new();
+
+        let multi_semicolon = parser.parse(
+            "
+            program ExtraSemicolons;
+            var
+                x : integer;
+            begin
+                x := 5;;;
+                writeln(x);;
+            end.            
+            ",
+        );
+
+        assert!(multi_semicolon.is_ok());
+    }
 }
