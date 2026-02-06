@@ -15,7 +15,7 @@ enum Symbol {
     },
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TypeError {
     HeaderError(String),
     VariableError(String),
@@ -24,7 +24,7 @@ pub enum TypeError {
 
 pub struct TypeChecker {
     symbol_tables: Vec<HashMap<String, Symbol>>,
-    pub errors: Vec<TypeError>,
+    errors: Vec<TypeError>,
     current_function: Option<(String, Type)>,
 }
 
@@ -55,6 +55,7 @@ impl TypeChecker {
         self.symbol_tables.pop();
     }
 
+    #[allow(dead_code)]
     fn symbol_exists(&mut self, entry: &str) -> bool {
         self.symbol_tables.iter().any(|map| map.contains_key(entry))
     }
@@ -78,7 +79,7 @@ impl TypeChecker {
         }
     }
 
-    pub fn check_program(&mut self, program: &Program, program_path: &Path) {
+    pub fn check_program(&mut self, program: &Program, program_path: &Path) -> Result<(), Vec<TypeError>> {
         self.check_header(&program.header, &program_path);
 
         for var in &program.variables {
@@ -93,6 +94,12 @@ impl TypeChecker {
         for stmt in &program.main {
             self.check_statement(&stmt);
         }
+
+        if !self.errors.is_empty() {
+            return Err(self.errors.clone());
+        }
+
+        Ok(())
     }
 
     fn check_header(&mut self, header: &Header, program_path: &Path) {
@@ -751,7 +758,7 @@ mod type_checker_tests {
             for (prog, name) in programs {
                 let mut checker = TypeChecker::new();
                 let decl = parser.parse(prog);
-                checker.check_program(&decl.unwrap(), Path::new(name));
+                _ = checker.check_program(&decl.unwrap(), Path::new(name));
                 assert!(checker.errors.len() == 1);
             }
         }

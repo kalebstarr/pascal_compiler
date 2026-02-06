@@ -35,21 +35,21 @@ fn main() {
         process::exit(1);
     });
 
-    let result = grammar::ProgramParser::new().parse(&file_content);
-    match result {
-        Ok(program) => {
-            let mut checker = TypeChecker::new();
-            checker.check_program(&program, &path);
-
-            if !checker.errors.is_empty() {
-                for err in checker.errors {
-                    eprintln!("Type Error: {:?}", err);
-                }
-                return;
-            }
+    let ast = match grammar::ProgramParser::new().parse(&file_content) {
+        Ok(program) => program,
+        Err(e) => {
+            eprintln!("Parse Error: {:?}", e);
+            return;
         }
-        Err(e) => eprintln!("Parse Error: {:?}", e),
-    }
+    };
+
+    let mut checker = TypeChecker::new();
+    if let Err(errors) = checker.check_program(&ast, &path) {
+        for err in errors {
+            eprintln!("Type Error: {:?}", err);
+        }
+        return;
+    };
 }
 
 fn has_pas_extension(path: &Path) -> bool {
