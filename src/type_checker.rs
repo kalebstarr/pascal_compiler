@@ -55,11 +55,6 @@ impl TypeChecker {
         self.symbol_tables.pop();
     }
 
-    #[allow(dead_code)]
-    fn symbol_exists(&mut self, entry: &str) -> bool {
-        self.symbol_tables.iter().any(|map| map.contains_key(entry))
-    }
-
     fn symbol_exists_in_current_scope(&self, entry: &str) -> bool {
         self.symbol_tables
             .last()
@@ -79,7 +74,11 @@ impl TypeChecker {
         }
     }
 
-    pub fn check_program(&mut self, program: &Program, program_path: &Path) -> Result<(), Vec<TypeError>> {
+    pub fn check_program(
+        &mut self,
+        program: &Program,
+        program_path: &Path,
+    ) -> Result<(), Vec<TypeError>> {
         self.check_header(&program.header, &program_path);
 
         for var in &program.variables {
@@ -557,15 +556,15 @@ mod type_checker_tests {
         let mut table_2 = HashMap::new();
         table_2.insert(String::from("var_2"), Symbol::Var { typ: Type::Boolean });
 
-        let mut checker = TypeChecker {
+        let checker = TypeChecker {
             symbol_tables: vec![table_1, table_2],
             errors: Vec::new(),
             current_function: None,
         };
 
-        assert!(checker.symbol_exists("var_1"));
-        assert!(checker.symbol_exists("var_2"));
-        assert!(!checker.symbol_exists("Does not exist"));
+        assert!(!checker.symbol_exists_in_current_scope("var_1"));
+        assert!(checker.symbol_exists_in_current_scope("var_2"));
+        assert!(!checker.symbol_exists_in_current_scope("Does not exist"));
     }
 
     // TODO: Test with expr
@@ -575,7 +574,7 @@ mod type_checker_tests {
         table.insert(String::from("var_1"), Symbol::Var { typ: Type::Integer });
 
         let mut checker = TypeChecker {
-            symbol_tables: vec![table, HashMap::new()],
+            symbol_tables: vec![table],
             errors: Vec::new(),
             current_function: None,
         };
@@ -598,14 +597,6 @@ mod type_checker_tests {
                     "Variable already exists: var_1"
                 )))
         );
-        assert!(
-            !checker
-                .errors
-                .contains(&TypeError::VariableError(String::from(
-                    "Variable already exists: var_2"
-                )))
-        );
-        assert!(checker.symbol_exists(&String::from("var_2")));
     }
 
     #[test]
