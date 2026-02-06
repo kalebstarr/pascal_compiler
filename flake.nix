@@ -26,6 +26,8 @@
             clippy
 
             fpc
+            jasmin
+            jdk25
           ];
         };
       }
