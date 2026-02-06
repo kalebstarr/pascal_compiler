@@ -37,6 +37,13 @@ impl TypeChecker {
             current_function: None,
         };
         t.push_scope();
+        t.insert_in_current_scope(
+            String::from("writeln"),
+            Symbol::Func {
+                params: vec![Type::Any],
+                ret: None,
+            },
+        );
         t
     }
 
@@ -506,6 +513,9 @@ impl TypeChecker {
     }
 
     fn assignable(dst: &Type, src: &Type) -> bool {
+        if *dst == Type::Any {
+            return true;
+        }
         dst == src || (*dst == Type::Double && *src == Type::Integer)
     }
 }
@@ -814,10 +824,7 @@ mod type_checker_tests {
                 end.
                 ",
             );
-            checker.check_program(
-                &decl.unwrap(),
-                Path::new("NotDeclared.pas"),
-            );
+            checker.check_program(&decl.unwrap(), Path::new("NotDeclared.pas"));
             assert!(checker.errors.len() == 1);
 
             let mut checker = TypeChecker::new();
@@ -829,10 +836,7 @@ mod type_checker_tests {
                 end.
                 ",
             );
-            checker.check_program(
-                &decl.unwrap(),
-                Path::new("UndeclaredVariable.pas"),
-            );
+            checker.check_program(&decl.unwrap(), Path::new("UndeclaredVariable.pas"));
             assert!(checker.errors.len() == 1);
 
             let mut checker = TypeChecker::new();
@@ -844,10 +848,35 @@ mod type_checker_tests {
                 end.
                 ",
             );
-            checker.check_program(
-                &decl.unwrap(),
-                Path::new("UndeclaredFunctionCall.pas"),
+            checker.check_program(&decl.unwrap(), Path::new("UndeclaredFunctionCall.pas"));
+            assert!(checker.errors.len() == 1);
+        }
+
+        #[test]
+        fn duplicate_identifier() {
+            let parser = grammar::ProgramParser::new();
+
+            let mut checker = TypeChecker::new();
+            let decl = parser.parse(
+                "
+                program DuplicateIdentifier2;
+                function Foo(a : integer) : integer;
+                begin
+                  Foo := a
+                end;
+                function Foo(b : integer) : integer;
+                begin
+                  Foo := b
+                end;
+                begin
+                  writeln(Foo(1))
+                end.        
+                ",
             );
+            checker.check_program(&decl.unwrap(), Path::new("DuplicateIdentifier2.pas"));
+            for i in &checker.errors {
+                println!("{:?}", i);
+            }
             assert!(checker.errors.len() == 1);
         }
     }

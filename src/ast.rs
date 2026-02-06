@@ -45,6 +45,7 @@ pub enum Type {
     Double,
     Boolean,
     String,
+    Any,
 }
 
 #[derive(Debug, Clone, PartialEq)]
