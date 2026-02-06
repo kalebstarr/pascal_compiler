@@ -651,258 +651,100 @@ mod type_checker_tests {
         use super::*;
 
         #[test]
-        fn wrong_types_arithmetic() {
+        fn check_programs() {
             let parser = grammar::ProgramParser::new();
             let programs = vec![
                 (
-                    "
-                program WrongTypesInArithmetic;
-                var
-                  x : integer;
-                begin
-                  x := true + 1
-                end.
-                ",
+                    r#"program WrongTypesInArithmetic; var x : integer; begin x := true + 1 end."#,
                     "WrongTypesInArithmetic.pas",
                 ),
                 (
-                    "
-                program WrongTypesInArithmetic2;
-                var
-                  x : integer;
-                begin
-                  x := 'hello' + 1
-                end.
-                ",
+                    r#"program WrongTypesInArithmetic2; var x : integer; begin x := 'hello' + 1 end."#,
                     "WrongTypesInArithmetic2.pas",
                 ),
                 (
-                    "
-                program WrongTypesInArithmetic3;
-                var
-                  x : integer;
-                begin
-                  x := true * false
-                end.
-                ",
+                    r#"program WrongTypesInArithmetic3; var x : integer; begin x := true * false end."#,
                     "WrongTypesInArithmetic3.pas",
                 ),
-            ];
-
-            for (prog, name) in programs {
-                let mut checker = TypeChecker::new();
-                let arithmetic = parser.parse(prog);
-                checker.check_program(&arithmetic.unwrap(), Path::new(name));
-                assert!(checker.errors.len() == 1);
-            }
-        }
-
-        #[test]
-        fn wrong_types_logic() {
-            let parser = grammar::ProgramParser::new();
-            let programs = vec![
                 (
-                    "
-                program WrongTypesInLogic;
-                var
-                  b : boolean;
-                begin
-                  b := 1 and 2
-                end.
-                ",
+                    r#"program WrongTypesInLogic; var b : boolean; begin b := 1 and 2 end."#,
                     "WrongTypesInLogic.pas",
                 ),
                 (
-                    "
-                program WrongTypesInLogic2;
-                var
-                  b : boolean;
-                begin
-                  b := 1.0 or 2.0
-                end.
-                ",
+                    r#"program WrongTypesInLogic2; var b : boolean; begin b := 1.0 or 2.0 end."#,
                     "WrongTypesInLogic2.pas",
                 ),
                 (
-                    "
-                program WrongTypesInLogic3;
-                var
-                  b : boolean;
-                begin
-                  b := not 1
-                end.                
-                ",
+                    r#"program WrongTypesInLogic3; var b : boolean; begin b := not 1 end."#,
                     "WrongTypesInLogic3.pas",
                 ),
-            ];
-
-            for (prog, name) in programs {
-                let mut checker = TypeChecker::new();
-                let logic = parser.parse(prog);
-                checker.check_program(&logic.unwrap(), Path::new(name));
-                assert!(checker.errors.len() == 1);
-            }
-        }
-
-        #[test]
-        fn invalid_assigns() {
-            let parser = grammar::ProgramParser::new();
-            let programs = vec![
                 (
-                    "
-                program AssgningIntExprToBoolVar;
-                var
-                  b : boolean;
-                begin
-                  b := 5 + 3
-                end.
-                ",
+                    r#"program AssgningIntExprToBoolVar; var b : boolean; begin b := 5 + 3 end."#,
                     "AssgningIntExprToBoolVar.pas",
                 ),
                 (
-                    "
-                program AssgningBoolExprToIntVar;
-                var
-                  x : integer;
-                begin
-                  x := true and false
-                end.
-                ",
+                    r#"program AssgningBoolExprToIntVar; var x : integer; begin x := true and false end."#,
                     "AssgningBoolExprToIntVar.pas",
                 ),
                 (
-                    "
-                program AssgningStringExprToBoolVar;
-                var
-                  b : boolean;
-                begin
-                  b := 'hello'
-                end.
-                ",
+                    r#"program AssgningBoolVarToIntVar; var b : boolean; x : integer; begin b := true; x := b end."#,
+                    "AssgningBoolVarToIntVar.pas",
+                ),
+                (
+                    r#"program AssgningStringExprToBoolVar; var b : boolean; begin b := 'hello' end."#,
                     "AssgningStringExprToBoolVar.pas",
                 ),
-            ];
-
-            for (prog, name) in programs {
-                let mut checker = TypeChecker::new();
-                let int_expr_to_bool = parser.parse(prog);
-                checker.check_program(&int_expr_to_bool.unwrap(), Path::new(name));
-                assert!(checker.errors.len() == 1);
-            }
-        }
-
-        #[test]
-        fn declarations() {
-            let parser = grammar::ProgramParser::new();
-            let programs = vec![
                 (
-                    "
-                program NotDeclared;
-                var
-                  x : integer;
-                begin
-                  x := y + 1
-                end.
-                ",
+                    r#"program NotDeclared; var x : integer; begin x := y + 1 end."#,
                     "NotDeclared.pas",
                 ),
                 (
-                    "
-                program UndeclaredVariable;
-                begin
-                  x := 5
-                end.
-                ",
+                    r#"program UndeclaredVariable; begin x := 5 end."#,
                     "UndeclaredVariable.pas",
                 ),
                 (
-                    "
-                program UndeclaredFunctionCall;
-                begin
-                  writeln(Foo(5))
-                end.
-                ",
+                    r#"program UndeclaredFunctionCall; begin writeln(Foo(5)) end."#,
                     "UndeclaredFunctionCall.pas",
                 ),
-            ];
-
-            for (prog, name) in programs {
-                let mut checker = TypeChecker::new();
-                let decl = parser.parse(prog);
-                checker.check_program(&decl.unwrap(), Path::new(name));
-                assert!(checker.errors.len() == 1);
-            }
-        }
-
-        #[test]
-        fn duplicate_identifier() {
-            let parser = grammar::ProgramParser::new();
-
-            let mut checker = TypeChecker::new();
-            let decl = parser.parse(
-                "
-                program DuplicateIdentifier2;
-                function Foo(a : integer) : integer;
-                begin
-                  Foo := a
-                end;
-                function Foo(b : integer) : integer;
-                begin
-                  Foo := b
-                end;
-                begin
-                  writeln(Foo(1))
-                end.        
-                ",
-            );
-            checker.check_program(&decl.unwrap(), Path::new("DuplicateIdentifier2.pas"));
-            assert!(checker.errors.len() == 1);
-        }
-
-        #[test]
-        fn func_wrong() {
-            let parser = grammar::ProgramParser::new();
-            let programs = vec![
                 (
-                    "
-                program WrongFunctionArgs;
-                function Add(a, b : integer) : integer;
-                begin
-                  Add := a + b
-                end;
-                begin
-                  writeln(Add(1, true))
-                end.
-                ",
+                    r#"program DuplicateIdentifier2; function Foo(a : integer) : integer; begin Foo := a end; function Foo(b : integer) : integer; begin Foo := b end; begin writeln(Foo(1)) end."#,
+                    "DuplicateIdentifier2.pas",
+                ),
+                (
+                    r#"program WrongFunctionArgs; function Add(a, b : integer) : integer; begin Add := a + b end; begin writeln(Add(1, true)) end."#,
                     "WrongFunctionArgs.pas",
                 ),
                 (
-                    "
-                program WrongArgNumber;
-                function Add(a, b : integer) : integer;
-                begin
-                  Add := a + b
-                end;
-                begin
-                  writeln(Add(1))
-                end.
-                ",
+                    r#"program WrongArgNumber; function Add(a, b : integer) : integer; begin Add := a + b end; begin writeln(Add(1)) end."#,
                     "WrongArgNumber.pas",
                 ),
                 (
-                    "
-                program BoolFunctionToInt;
-                var
-                  x : integer;
-                function IsTrue() : boolean;
-                begin
-                  IsTrue := true
-                end;
-                begin
-                  x := IsTrue()
-                end.    
-                ",
+                    r#"program BoolFunctionToInt; var x : integer; function IsTrue() : boolean; begin IsTrue := true end; begin x := IsTrue() end."#,
                     "BoolFunctionToInt.pas",
+                ),
+                (
+                    r#"program PlusOnBoolean; var b : boolean; begin b := +true end."#,
+                    "PlusOnBoolean.pas",
+                ),
+                (
+                    r#"program WrongCompare; var b : boolean; begin b := true > 9 end."#,
+                    "WrongCompare.pas",
+                ),
+                (
+                    r#"program PutDoubleInInt; var x : integer; begin x := 3.14 end."#,
+                    "PutDoubleInInt.pas",
+                ),
+                (
+                    r#"program TypoBool; var b : boolean; begin b := tru end."#,
+                    "TypoBool.pas",
+                ),
+                (
+                    r#"program TypoBool2; var b : boolean; begin b := fals end."#,
+                    "TypoBool2.pas",
+                ),
+                (
+                    r#"program WrongReturnValue; function Foo() : integer; begin Foo := true end; begin writeln(Foo()) end."#,
+                    "WrongReturnValue.pas",
                 ),
             ];
 
