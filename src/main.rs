@@ -2,7 +2,7 @@ use std::{env, error::Error, fmt::Display, fs, path::Path, process};
 
 use lalrpop_util::lalrpop_mod;
 
-use crate::type_checker::TypeChecker;
+use crate::{code_gen::CodeGen, type_checker::TypeChecker};
 
 lalrpop_mod!(
     #[allow(clippy::ptr_arg)]
@@ -11,6 +11,7 @@ lalrpop_mod!(
 );
 
 pub mod ast;
+mod code_gen;
 mod type_checker;
 
 fn main() {
@@ -50,6 +51,8 @@ fn main() {
         }
         return;
     };
+
+    let _ = CodeGen::new();
 }
 
 fn has_pas_extension(path: &Path) -> bool {
